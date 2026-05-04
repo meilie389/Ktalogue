@@ -1,0 +1,210 @@
+.header {
+  background: linear-gradient(135deg, #1a0533 0%, #0e0b14 50%, #001a2e 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 16px 12px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  flex-shrink: 0;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.logo {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  white-space: nowrap;
+}
+
+.meta {
+  display: flex;
+  gap: 6px;
+}
+
+.pill {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 3px 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.pillNum { color: var(--accent); }
+
+.actions {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+
+.refreshBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 6px 13px;
+  font-size: 12.5px;
+  color: var(--text2);
+  transition: all 0.18s;
+  white-space: nowrap;
+}
+
+.refreshBtn:hover { border-color: var(--accent3); color: var(--accent3); }
+
+.hasNew {
+  border-color: rgba(74, 222, 128, 0.4) !important;
+  color: var(--green) !important;
+}
+
+.newBadge {
+  background: var(--green);
+  color: #0e0b14;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 1px 7px;
+}
+
+.favPanelBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 6px 13px;
+  font-size: 12.5px;
+  color: var(--text2);
+  transition: all 0.18s;
+  white-space: nowrap;
+}
+
+.favPanelBtn:hover { border-color: var(--fav); color: var(--fav); }
+
+.hasFavs { border-color: rgba(244, 114, 182, 0.4); color: var(--fav); }
+.favPanelOpen { background: rgba(244, 114, 182, 0.08); }
+
+.favBadge {
+  background: var(--fav);
+  color: white;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 1px 7px;
+}
+
+/* Controls row */
+.controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.searchWrap {
+  position: relative;
+  flex: 1;
+  min-width: 180px;
+  max-width: 380px;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 32px 8px 34px;
+  color: var(--text);
+  font-size: 13.5px;
+  outline: none;
+  transition: border-color 0.18s;
+}
+.searchInput:focus { border-color: var(--accent); }
+.searchInput::placeholder { color: var(--muted); }
+
+.clearSearch {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 12px;
+  padding: 2px;
+  transition: color 0.15s;
+}
+.clearSearch:hover { color: var(--text); }
+
+.select {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 11px;
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.18s;
+}
+.select:focus { border-color: var(--accent); }
+
+.chip {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 6px 13px;
+  font-size: 12.5px;
+  color: var(--text2);
+  transition: all 0.18s;
+  white-space: nowrap;
+}
+.chip:hover { border-color: var(--muted); color: var(--text); }
+
+.chipDuo {
+  border-color: rgba(56, 189, 248, 0.5);
+  color: var(--duo);
+  background: rgba(56, 189, 248, 0.08);
+}
+
+.chipFav {
+  border-color: rgba(244, 114, 182, 0.5);
+  color: var(--fav);
+  background: rgba(244, 114, 182, 0.08);
+}
+
+.chipNew {
+  border-color: rgba(74, 222, 128, 0.5);
+  color: var(--green);
+  background: rgba(74, 222, 128, 0.08);
+}
+
+@media (max-width: 640px) {
+  .meta { display: none; }
+  .logo { font-size: 18px; }
+}
