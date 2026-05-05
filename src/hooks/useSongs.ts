@@ -9,6 +9,12 @@ const NEW_IDS_KEY = 'kara_new_ids'
 
 // Proxy URL — à remplacer par ton URL Deno Deploy
 export const PROXY_URL = import.meta.env.VITE_PROXY_URL ?? 'https://YOUR_PROXY.deno.dev'
+const PROXY_SECRET = import.meta.env.VITE_PROXY_SECRET ?? ''
+
+export const proxyHeaders = {
+  'Content-Type': 'application/json',
+  ...(PROXY_SECRET ? { 'X-Proxy-Secret': PROXY_SECRET } : {}),
+}
 
 function loadFavIds(): Set<number> {
   try {
@@ -81,7 +87,7 @@ export function useSongs() {
     try {
       const res = await fetch(`${PROXY_URL}/search`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: proxyHeaders,
         body: JSON.stringify({ email, password }),
       })
       if (!res.ok) {
@@ -93,6 +99,7 @@ export function useSongs() {
       const freshNews = fetched.filter(s => !knownIds.has(s.id))
 
       if (freshNews.length === 0) {
+        setNewIds(new Set()) // plus rien de nouveau → efface les badges
         setRefreshStatus({ state: 'success', newCount: 0, message: 'Catalogue déjà à jour ✓' })
         return
       }
@@ -103,11 +110,8 @@ export function useSongs() {
         const toAdd = normalized.filter(s => !existing.has(s.id))
         return [...prev, ...toAdd]
       })
-      setNewIds(prev => {
-        const next = new Set(prev)
-        freshNews.forEach(s => next.add(s.id))
-        return next
-      })
+      // Remplace (ne cumule pas) — seules les nouveautés du DERNIER sync sont marquées
+      setNewIds(new Set(freshNews.map(s => s.id)))
       setRefreshStatus({ state: 'success', newCount: freshNews.length })
     } catch (e) {
       setRefreshStatus({ state: 'error', message: (e as Error).message })

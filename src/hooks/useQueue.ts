@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
 import type { Song, Credentials, QueueEntry } from '../types'
-import { PROXY_URL } from './useSongs'
+import { PROXY_URL, proxyHeaders } from './useSongs'
 
 type ActionStatus = 'idle' | 'loading' | 'error'
 
@@ -29,7 +29,7 @@ export function useQueue(credentials: Credentials | null, onAuthError?: () => vo
     try {
       const res = await fetch(`${PROXY_URL}/add`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: proxyHeaders,
         body: JSON.stringify({ ...credentials, song_id: song.id }),
       })
       if (!res.ok) {
@@ -61,7 +61,7 @@ export function useQueue(credentials: Credentials | null, onAuthError?: () => vo
     try {
       const res = await fetch(`${PROXY_URL}/remove`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: proxyHeaders,
         body: JSON.stringify({ ...credentials, karaoke_id: entry.karaokeId }),
       })
       if (!res.ok) {
@@ -86,7 +86,7 @@ export function useQueue(credentials: Credentials | null, onAuthError?: () => vo
     try {
       const res = await fetch(`${PROXY_URL}/change-position`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: proxyHeaders,
         body: JSON.stringify({ ...credentials, karaoke_id: entry.karaokeId, direction }),
       })
       if (!res.ok) {

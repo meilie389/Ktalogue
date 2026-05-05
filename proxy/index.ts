@@ -180,6 +180,13 @@ function requireCredentials(body: Record<string, unknown>): { email: string; pas
 
 // ── Request handler ───────────────────────────────────────────────────────────
 
+const PROXY_SECRET = Deno.env.get("PROXY_SECRET") ?? "";
+
+function checkSecret(req: Request): boolean {
+  if (!PROXY_SECRET) return true; // pas de secret configuré → ouvert (dev)
+  return req.headers.get("X-Proxy-Secret") === PROXY_SECRET;
+}
+
 Deno.serve(async (req: Request) => {
   const url = new URL(req.url);
 
@@ -191,6 +198,14 @@ Deno.serve(async (req: Request) => {
   // Health check
   if (url.pathname === "/health") {
     return new Response(JSON.stringify({ ok: true }), {
+      headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+    });
+  }
+
+  // Vérification du secret sur toutes les autres routes
+  if (!checkSecret(req)) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
       headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
     });
   }

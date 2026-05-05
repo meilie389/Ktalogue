@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { RefreshStatus } from '../types'
+import { getSavedEmail } from '../utils/session'
 import styles from './LoginModal.module.css'
 
 interface Props {
@@ -10,13 +11,12 @@ interface Props {
 }
 
 export function LoginModal({ status, onLogin, onClose, onClearNew }: Props) {
-  const [email, setEmail] = useState(() => localStorage.getItem('kara_email') ?? '')
+  const [email, setEmail] = useState(() => getSavedEmail())
   const [password, setPassword] = useState('')
   const [showPass, setShowPass] = useState(false)
 
   function handleSubmit() {
     if (!email || !password) return
-    localStorage.setItem('kara_email', email)
     onLogin(email, password)
   }
 

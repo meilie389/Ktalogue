@@ -10,6 +10,7 @@ import { FavPanel } from './components/FavPanel'
 import { QueuePanel } from './components/QueuePanel'
 import { LoginModal } from './components/LoginModal'
 import { RefreshModal } from './components/RefreshModal'
+import { saveSession, loadSession, clearSession } from './utils/session'
 import styles from './App.module.css'
 
 const DEFAULT_FILTERS: Filters = {
@@ -34,10 +35,11 @@ export default function App() {
   const [loginModalOpen, setLoginModalOpen] = useState(false)
   const [syncModalOpen, setSyncModalOpen] = useState(false)
   const [artistDrawerOpen, setArtistDrawerOpen] = useState(false)
-  const [credentials, setCredentials] = useState<Credentials | null>(null)
+  const [credentials, setCredentials] = useState<Credentials | null>(() => loadSession())
 
   function handleAuthError() {
     setCredentials(null)
+    clearSession()
     setLoginModalOpen(true)
   }
 
@@ -81,12 +83,14 @@ export default function App() {
 
   async function handleLogin(email: string, password: string) {
     await refresh(email, password)
-    // Les credentials ne sont sauvegardés que si refresh réussit (via refreshStatus)
-    setCredentials({ email, password })
+    const creds = { email, password }
+    setCredentials(creds)
+    saveSession(creds)
   }
 
   function handleLogout() {
     setCredentials(null)
+    clearSession()
     setRefreshStatus({ state: 'idle' })
   }
 
