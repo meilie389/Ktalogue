@@ -197,6 +197,23 @@
 }
 .logoutBtn:hover { border-color: #ef4444; color: #ef4444; }
 
+.exportBtn {
+  background: none;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 5px 9px;
+  font-size: 11px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  opacity: 0.6;
+}
+.exportBtn:hover {
+  border-color: var(--accent3);
+  color: var(--accent3);
+  opacity: 1;
+}
+
 /* Controls row */
 .controls {
   display: flex;

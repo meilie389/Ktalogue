@@ -54,7 +54,9 @@
 
 .badgeLang,
 .badgeDuo,
-.badgeNew {
+.badgeNew,
+.badgeDuration,
+.badgeGenre {
   font-size: 10px;
   font-family: var(--font-mono);
   padding: 1px 7px;
@@ -78,6 +80,18 @@
   color: var(--new);
   border-color: rgba(74, 222, 128, 0.4);
   background: rgba(74, 222, 128, 0.08);
+}
+
+.badgeDuration {
+  color: var(--muted);
+  border-color: rgba(148, 163, 184, 0.25);
+  background: rgba(148, 163, 184, 0.06);
+}
+
+.badgeGenre {
+  color: rgba(192, 132, 252, 0.8);
+  border-color: rgba(192, 132, 252, 0.25);
+  background: rgba(192, 132, 252, 0.06);
 }
 
 .favBtn {
@@ -163,6 +177,16 @@
   border-color: var(--accent);
   color: var(--accent);
   background: rgba(192, 132, 252, 0.1);
+}
+.previewBtnUnenriched {
+  border-color: rgba(192, 132, 252, 0.45);
+  color: rgba(192, 132, 252, 0.85);
+  background: rgba(192, 132, 252, 0.07);
+}
+.previewBtnUnenriched:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(192, 132, 252, 0.15);
 }
 .previewBtnPlaying {
   border-color: var(--accent) !important;

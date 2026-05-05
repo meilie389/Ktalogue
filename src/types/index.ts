@@ -7,6 +7,10 @@ export interface Song {
   updated_at: string | null
   duo: boolean
   isNew?: boolean // flagged after refresh
+  // iTunes enrichment (populated lazily on first preview)
+  genre?: string
+  durationMs?: number
+  itunesId?: number
 }
 
 export type Lang =

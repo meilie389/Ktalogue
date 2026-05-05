@@ -18,6 +18,10 @@ export function SongCard({ song, isFav, onToggleFav, queueStatus, onAddToQueue, 
   const isLoading = queueStatus === 'loading'
   const isError = queueStatus === 'error'
 
+  const durationLabel = song.durationMs
+    ? `${Math.floor(song.durationMs / 60000)}:${String(Math.floor((song.durationMs % 60000) / 1000)).padStart(2, '0')}`
+    : null
+
   return (
     <div className={`${styles.card} ${isFav ? styles.isFav : ''} ${song.isNew ? styles.isNew : ''} ${previewStatus === 'playing' ? styles.isPlaying : ''}`}>
       <div className={styles.info}>
@@ -27,12 +31,21 @@ export function SongCard({ song, isFav, onToggleFav, queueStatus, onAddToQueue, 
           <span className={styles.badgeLang}>{lang}</span>
           {song.duo && <span className={styles.badgeDuo}>duo</span>}
           {song.isNew && <span className={styles.badgeNew}>new</span>}
+          {durationLabel && <span className={styles.badgeDuration}>{durationLabel}</span>}
+          {song.genre && <span className={styles.badgeGenre}>{song.genre}</span>}
         </div>
       </div>
       <div className={styles.cardActions}>
         {onPreview && (
           <button
-            className={`${styles.previewBtn} ${previewStatus === 'playing' ? styles.previewBtnPlaying : ''} ${previewStatus === 'loading' ? styles.previewBtnLoading : ''}`}
+            className={[
+              styles.previewBtn,
+              previewStatus === 'playing' ? styles.previewBtnPlaying : '',
+              previewStatus === 'loading' ? styles.previewBtnLoading : '',
+              !song.itunesId && previewStatus !== 'playing' && previewStatus !== 'loading'
+                ? styles.previewBtnUnenriched
+                : '',
+            ].join(' ')}
             onClick={() => onPreview(song)}
             title={previewStatus === 'playing' ? 'Pause' : 'Écouter un extrait'}
             aria-label="Extrait"

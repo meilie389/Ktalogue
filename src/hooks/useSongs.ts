@@ -1,19 +1,22 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import type { Song, Filters, RefreshStatus } from '../types'
 import { normalizeSong, normalizeLang } from '../utils/normalize'
-import rawSongs from '../data/songs.json'
+
+// Récupère automatiquement le fichier songs-*.json le plus récent (tri alphabétique = chronologique)
+const songModules = import.meta.glob('../data/songs-*.json', { eager: true })
+const latestKey = Object.keys(songModules).sort().at(-1)!
+const rawSongs = (songModules[latestKey] as { default: unknown }).default as Song[]
 
 const FAVS_KEY = 'kara_favs_v2'
 const SONGS_KEY = 'kara_songs_v2'
 const NEW_IDS_KEY = 'kara_new_ids'
+const ENRICH_KEY = 'kara_enrich_v1'
 
 // Proxy URL — à remplacer par ton URL Deno Deploy
 export const PROXY_URL = import.meta.env.VITE_PROXY_URL ?? 'https://YOUR_PROXY.deno.dev'
-const PROXY_SECRET = import.meta.env.VITE_PROXY_SECRET ?? ''
 
 export const proxyHeaders = {
   'Content-Type': 'application/json',
-  ...(PROXY_SECRET ? { 'X-Proxy-Secret': PROXY_SECRET } : {}),
 }
 
 function loadFavIds(): Set<number> {
@@ -37,6 +40,15 @@ function loadNewIds(): Set<number> {
   } catch { return new Set() }
 }
 
+type EnrichData = { genre?: string; durationMs?: number; itunesId?: number }
+
+function loadEnrichMap(): Map<number, EnrichData> {
+  try {
+    const raw = localStorage.getItem(ENRICH_KEY)
+    return raw ? new Map(JSON.parse(raw)) : new Map()
+  } catch { return new Map() }
+}
+
 export function useSongs() {
   // Base songs (bundled) + extras fetched via refresh
   const baseSongs = useMemo(() => (rawSongs as Song[]).map(normalizeSong), [])
@@ -45,13 +57,18 @@ export function useSongs() {
   const [extraSongs, setExtraSongs] = useState<Song[]>(() => loadExtraSongs().map(normalizeSong))
   const [newIds, setNewIds] = useState<Set<number>>(() => loadNewIds())
   const [favIds, setFavIds] = useState<Set<number>>(loadFavIds)
+  const [enrichMap, setEnrichMap] = useState<Map<number, EnrichData>>(() => loadEnrichMap())
   const [refreshStatus, setRefreshStatus] = useState<RefreshStatus>({ state: 'idle' })
 
-  // Merge: base + extras (deduped)
+  // Merge: base + extras (deduped), with enrichment overlay
   const allSongs = useMemo(() => {
     const all = [...baseSongs, ...extraSongs]
-    return all.map(s => ({ ...s, isNew: newIds.has(s.id) }))
-  }, [baseSongs, extraSongs, newIds])
+    return all.map(s => ({
+      ...s,
+      isNew: newIds.has(s.id),
+      ...enrichMap.get(s.id),
+    }))
+  }, [baseSongs, extraSongs, newIds, enrichMap])
 
   // Persist favs
   useEffect(() => {
@@ -68,6 +85,11 @@ export function useSongs() {
     localStorage.setItem(NEW_IDS_KEY, JSON.stringify([...newIds]))
   }, [newIds])
 
+  // Persist enrich map
+  useEffect(() => {
+    localStorage.setItem(ENRICH_KEY, JSON.stringify([...enrichMap.entries()]))
+  }, [enrichMap])
+
   const toggleFav = useCallback((id: number) => {
     setFavIds(prev => {
       const next = new Set(prev)
@@ -80,6 +102,14 @@ export function useSongs() {
 
   const clearNewBadges = useCallback(() => {
     setNewIds(new Set())
+  }, [])
+
+  const enrichSong = useCallback((id: number, data: EnrichData) => {
+    setEnrichMap(prev => {
+      const next = new Map(prev)
+      next.set(id, { ...prev.get(id), ...data })
+      return next
+    })
   }, [])
 
   const refresh = useCallback(async (email: string, password: string) => {
@@ -156,6 +186,7 @@ export function useSongs() {
     toggleFav,
     clearFavs,
     clearNewBadges,
+    enrichSong,
     refresh,
     filterSongs,
     totalNew: newIds.size,

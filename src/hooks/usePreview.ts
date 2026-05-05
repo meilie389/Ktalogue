@@ -9,7 +9,13 @@ export interface PreviewTrack {
   artworkUrl: string
 }
 
-export function usePreview() {
+export interface EnrichPayload {
+  genre?: string
+  durationMs?: number
+  itunesId?: number
+}
+
+export function usePreview(onEnrich?: (songId: number, data: EnrichPayload) => void) {
   const [current, setCurrent] = useState<PreviewTrack | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -65,6 +71,15 @@ export function usePreview() {
       // Prend le premier résultat avec un previewUrl
       const hit = json.results?.find((r: any) => r.previewUrl) ?? null
       if (!hit) throw new Error('Aucun extrait disponible')
+
+      // Enrichissement iTunes (passif)
+      if (onEnrich) {
+        onEnrich(song.id, {
+          genre: hit.primaryGenreName ?? undefined,
+          durationMs: hit.trackTimeMillis ?? undefined,
+          itunesId: hit.trackId ?? undefined,
+        })
+      }
 
       setCurrent({
         songId: song.id,

@@ -19,13 +19,14 @@ interface Props {
   onOpenLogin: () => void
   onLogout: () => void
   onReset: () => void
+  onExportCatalog: () => void
 }
 
 export function Header({
   total, filtered, totalNew, favCount, filters, langs,
   favPanelOpen, queueCount, queuePanelOpen, userEmail,
   onFiltersChange, onToggleFavPanel, onToggleQueuePanel,
-  onOpenRefresh, onOpenLogin, onLogout, onReset,
+  onOpenRefresh, onOpenLogin, onLogout, onReset, onExportCatalog,
 }: Props) {
   return (
     <header className={styles.header}>
@@ -84,6 +85,16 @@ export function Header({
             🎙 File
             {queueCount > 0 && <span className={styles.queueBadge}>{queueCount}</span>}
           </button>
+
+          {userEmail && userEmail === (import.meta.env.VITE_ADMIN_EMAIL ?? '') && (
+            <button
+              className={styles.exportBtn}
+              onClick={onExportCatalog}
+              title="Exporter le catalogue en JSON (pour mettre à jour songs.json)"
+            >
+              ⬇ Export
+            </button>
+          )}
         </div>
       </div>
 

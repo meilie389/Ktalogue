@@ -27,7 +27,7 @@ export default function App() {
   const {
     allSongs, favIds, langs, artists, totalNew,
     refreshStatus, setRefreshStatus,
-    toggleFav, clearFavs, clearNewBadges, refresh, filterSongs,
+    toggleFav, clearFavs, clearNewBadges, enrichSong, refresh, filterSongs,
   } = useSongs()
 
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS)
@@ -46,7 +46,7 @@ export default function App() {
   }
 
   const { queue, isInQueue, isLoadingQueue, fetchQueue, addToQueue, removeFromQueue, moveInQueue, songStatus, entryStatus } = useQueue(credentials, handleAuthError)
-  const { current: previewTrack, isPlaying: previewPlaying, isLoading: previewLoading, progress, duration, playPreview, togglePlay, seek, stop: stopPreview } = usePreview()
+  const { current: previewTrack, isPlaying: previewPlaying, isLoading: previewLoading, progress, duration, playPreview, togglePlay, seek, stop: stopPreview } = usePreview(enrichSong)
 
   // Auto-fetch de la file à l'ouverture du panneau
   useEffect(() => {
@@ -75,6 +75,24 @@ export default function App() {
     const a = document.createElement('a')
     a.href = URL.createObjectURL(blob)
     a.download = 'mes-favoris-karaoke.json'
+    a.click()
+  }
+
+  function handleExportCatalog() {
+    // Exporte tout le catalogue (base + extras + enrichissement iTunes)
+    // en retirant les champs runtime uniquement présents en mémoire
+    const toExport = allSongs.map((s) => {
+      const { isNew, ...rest } = s
+      const clean: Record<string, unknown> = { ...rest }
+      delete clean._search  // champ interne ajouté par normalizeSong
+      return clean
+    })
+    const blob = new Blob([JSON.stringify(toExport, null, 2)], { type: 'application/json' })
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    const now = new Date()
+    const ts = now.toISOString().slice(0, 16).replace('T', '-').replace(':', '-')
+    a.download = `songs-${ts}.json`
     a.click()
   }
 
@@ -122,6 +140,7 @@ export default function App() {
         queuePanelOpen={queuePanelOpen}
         onToggleQueuePanel={() => { setQueuePanelOpen(v => !v); setFavPanelOpen(false) }}
         userEmail={credentials?.email ?? null}
+        onExportCatalog={handleExportCatalog}
       />
 
       <button
