@@ -39,6 +39,7 @@ jobs:
         env:
           # Remplace par ton URL Deno Deploy une fois déployé
           VITE_PROXY_URL: ${{ secrets.VITE_PROXY_URL }}
+          VITE_ADMIN_EMAIL: ${{ secrets.VITE_ADMIN_EMAIL }}
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
