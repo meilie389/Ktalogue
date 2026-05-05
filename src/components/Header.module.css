@@ -47,6 +47,7 @@
 .actions {
   margin-left: auto;
   display: flex;
+  align-items: center;
   gap: 8px;
 }
 
@@ -197,6 +198,8 @@
 /* Dropdown menu */
 .userMenu {
   position: relative;
+  display: flex;
+  align-items: center;
 }
 .userDropdown {
   position: absolute;
