@@ -10,6 +10,8 @@ import { FavPanel } from './components/FavPanel'
 import { QueuePanel } from './components/QueuePanel'
 import { LoginModal } from './components/LoginModal'
 import { RefreshModal } from './components/RefreshModal'
+import { usePreview } from './hooks/usePreview'
+import { MiniPlayer } from './components/MiniPlayer'
 import { saveSession, loadSession, clearSession } from './utils/session'
 import styles from './App.module.css'
 
@@ -44,6 +46,7 @@ export default function App() {
   }
 
   const { queue, isInQueue, isLoadingQueue, fetchQueue, addToQueue, removeFromQueue, moveInQueue, songStatus, entryStatus } = useQueue(credentials, handleAuthError)
+  const { current: previewTrack, isPlaying: previewPlaying, isLoading: previewLoading, progress, duration, playPreview, togglePlay, seek, stop: stopPreview } = usePreview()
 
   // Auto-fetch de la file à l'ouverture du panneau
   useEffect(() => {
@@ -141,7 +144,7 @@ export default function App() {
           onDrawerClose={() => setArtistDrawerOpen(false)}
         />
 
-        <main className={styles.catalog}>
+        <main className={styles.catalog} style={previewTrack ? { paddingBottom: 88 } : undefined}>
           <div className={styles.resultsInfo}>
             <b>{filtered.length.toLocaleString('fr')}</b>
             {' '}titre{filtered.length > 1 ? 's' : ''} affiché{filtered.length > 1 ? 's' : ''}
@@ -163,6 +166,12 @@ export default function App() {
                   : songStatus[song.id] === 'loading' ? 'loading'
                   : songStatus[song.id] === 'error' ? 'error'
                   : undefined
+                }
+                onPreview={playPreview}
+                previewStatus={
+                  previewTrack?.songId === song.id
+                    ? previewLoading ? 'loading' : previewPlaying ? 'playing' : 'idle'
+                    : undefined
                 }
               />
             ))}
@@ -208,6 +217,19 @@ export default function App() {
           />
         )}
       </div>
+
+      {previewTrack && (
+        <MiniPlayer
+          track={previewTrack}
+          isPlaying={previewPlaying}
+          isLoading={previewLoading}
+          progress={progress}
+          duration={duration}
+          onToggle={togglePlay}
+          onSeek={seek}
+          onClose={stopPreview}
+        />
+      )}
 
       {loginModalOpen && (
         <LoginModal

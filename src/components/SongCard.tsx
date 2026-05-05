@@ -8,16 +8,18 @@ interface Props {
   onToggleFav: (id: number) => void
   queueStatus?: 'loading' | 'error' | 'queued'
   onAddToQueue?: (song: Song) => void
+  previewStatus?: 'loading' | 'playing' | 'idle'
+  onPreview?: (song: Song) => void
 }
 
-export function SongCard({ song, isFav, onToggleFav, queueStatus, onAddToQueue }: Props) {
+export function SongCard({ song, isFav, onToggleFav, queueStatus, onAddToQueue, previewStatus, onPreview }: Props) {
   const lang = normalizeLang(song.album)
   const isQueued = queueStatus === 'queued'
   const isLoading = queueStatus === 'loading'
   const isError = queueStatus === 'error'
 
   return (
-    <div className={`${styles.card} ${isFav ? styles.isFav : ''} ${song.isNew ? styles.isNew : ''}`}>
+    <div className={`${styles.card} ${isFav ? styles.isFav : ''} ${song.isNew ? styles.isNew : ''} ${previewStatus === 'playing' ? styles.isPlaying : ''}`}>
       <div className={styles.info}>
         <div className={styles.title}>{song.title || '—'}</div>
         <div className={styles.artist}>{song.artist || '—'}</div>
@@ -28,6 +30,16 @@ export function SongCard({ song, isFav, onToggleFav, queueStatus, onAddToQueue }
         </div>
       </div>
       <div className={styles.cardActions}>
+        {onPreview && (
+          <button
+            className={`${styles.previewBtn} ${previewStatus === 'playing' ? styles.previewBtnPlaying : ''} ${previewStatus === 'loading' ? styles.previewBtnLoading : ''}`}
+            onClick={() => onPreview(song)}
+            title={previewStatus === 'playing' ? 'Pause' : 'Écouter un extrait'}
+            aria-label="Extrait"
+          >
+            {previewStatus === 'loading' ? '⟳' : previewStatus === 'playing' ? '⏸' : '▶'}
+          </button>
+        )}
         {onAddToQueue && (
           <button
             className={`${styles.queueBtn} ${isQueued ? styles.queueBtnQueued : ''} ${isError ? styles.queueBtnError : ''}`}
