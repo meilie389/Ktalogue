@@ -137,6 +137,66 @@
   padding: 1px 7px;
 }
 
+/* ── Auth ── */
+.loginBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border: none;
+  border-radius: var(--radius);
+  padding: 6px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: white;
+  transition: opacity 0.18s;
+  white-space: nowrap;
+}
+.loginBtn:hover { opacity: 0.85; }
+
+.authPill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(74, 222, 128, 0.08);
+  border: 1px solid rgba(74, 222, 128, 0.3);
+  border-radius: 20px;
+  padding: 4px 12px 4px 8px;
+  max-width: 160px;
+}
+.authDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgb(74, 222, 128);
+  flex-shrink: 0;
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+.authEmail {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: rgb(74, 222, 128);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.logoutBtn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 5px 8px;
+  font-size: 14px;
+  color: var(--muted);
+  transition: all 0.15s;
+  line-height: 1;
+}
+.logoutBtn:hover { border-color: #ef4444; color: #ef4444; }
+
 /* Controls row */
 .controls {
   display: flex;

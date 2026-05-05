@@ -1,25 +1,15 @@
-import { useState } from 'react'
 import type { RefreshStatus } from '../types'
 import styles from './RefreshModal.module.css'
 
 interface Props {
   status: RefreshStatus
-  onRefresh: (email: string, password: string) => void
+  userEmail: string
+  onSync: () => void
   onClose: () => void
   onClearNew: () => void
 }
 
-export function RefreshModal({ status, onRefresh, onClose, onClearNew }: Props) {
-  const [email, setEmail] = useState(() => localStorage.getItem('kara_email') ?? '')
-  const [password, setPassword] = useState('')
-  const [showPass, setShowPass] = useState(false)
-
-  function handleSubmit() {
-    if (!email || !password) return
-    localStorage.setItem('kara_email', email)
-    onRefresh(email, password)
-  }
-
+export function RefreshModal({ status, userEmail, onSync, onClose, onClearNew }: Props) {
   const isLoading = status.state === 'loading'
   const newCount = status.newCount ?? 0
 
@@ -27,47 +17,14 @@ export function RefreshModal({ status, onRefresh, onClose, onClearNew }: Props) 
     <div className={styles.overlay} onClick={e => { if (e.target === e.currentTarget) onClose() }}>
       <div className={styles.modal}>
         <div className={styles.header}>
-          <span className={styles.title}>🔄 Refresh du catalogue</span>
+          <span className={styles.title}>🔄 Sync catalogue</span>
           <button className={styles.closeBtn} onClick={onClose}>✕</button>
         </div>
 
         <p className={styles.desc}>
-          Connexion à <code>e-events.codewave.nc</code> pour récupérer les nouvelles chansons.
-          Seules les chansons absentes du catalogue local seront ajoutées.
+          Connecté en tant que <code>{userEmail}</code>.
+          Récupère les nouvelles chansons depuis <code>e-events.codewave.nc</code>.
         </p>
-
-        <div className={styles.field}>
-          <label>Email</label>
-          <input
-            type="email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            placeholder="ton@email.com"
-            disabled={isLoading}
-            autoComplete="email"
-          />
-        </div>
-
-        <div className={styles.field}>
-          <label>Mot de passe</label>
-          <div className={styles.passWrap}>
-            <input
-              type={showPass ? 'text' : 'password'}
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="••••••••"
-              disabled={isLoading}
-              onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-              autoComplete="current-password"
-            />
-            <button
-              className={styles.eyeBtn}
-              onClick={() => setShowPass(v => !v)}
-              type="button"
-              tabIndex={-1}
-            >{showPass ? '🙈' : '👁'}</button>
-          </div>
-        </div>
 
         {status.state === 'success' && (
           <div className={styles.success}>
@@ -90,15 +47,15 @@ export function RefreshModal({ status, onRefresh, onClose, onClearNew }: Props) 
         )}
 
         <div className={styles.footer}>
-          <button className={styles.btnGhost} onClick={onClose}>Annuler</button>
+          <button className={styles.btnGhost} onClick={onClose}>Fermer</button>
           <button
             className={styles.btnPrimary}
-            onClick={handleSubmit}
-            disabled={isLoading || !email || !password}
+            onClick={onSync}
+            disabled={isLoading}
           >
-            {isLoading ? (
-              <span className={styles.spinner}>⟳ Connexion…</span>
-            ) : 'Lancer le refresh'}
+            {isLoading
+              ? <span className={styles.spinner}>⟳ Sync en cours…</span>
+              : status.state === 'success' ? 'Resync' : 'Lancer la sync'}
           </button>
         </div>
       </div>

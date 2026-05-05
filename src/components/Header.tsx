@@ -11,17 +11,21 @@ interface Props {
   favPanelOpen: boolean
   queueCount: number
   queuePanelOpen: boolean
+  userEmail: string | null
   onFiltersChange: (f: Partial<Filters>) => void
   onToggleFavPanel: () => void
   onToggleQueuePanel: () => void
   onOpenRefresh: () => void
+  onOpenLogin: () => void
+  onLogout: () => void
   onReset: () => void
 }
 
 export function Header({
   total, filtered, totalNew, favCount, filters, langs,
-  favPanelOpen, queueCount, queuePanelOpen,
-  onFiltersChange, onToggleFavPanel, onToggleQueuePanel, onOpenRefresh, onReset,
+  favPanelOpen, queueCount, queuePanelOpen, userEmail,
+  onFiltersChange, onToggleFavPanel, onToggleQueuePanel,
+  onOpenRefresh, onOpenLogin, onLogout, onReset,
 }: Props) {
   return (
     <header className={styles.header}>
@@ -40,14 +44,29 @@ export function Header({
         </div>
 
         <div className={styles.actions}>
-          <button
-            className={`${styles.refreshBtn} ${totalNew > 0 ? styles.hasNew : ''}`}
-            onClick={onOpenRefresh}
-            title="Rafraîchir le catalogue"
-          >
-            🔄 Refresh
-            {totalNew > 0 && <span className={styles.newBadge}>{totalNew}</span>}
-          </button>
+          {userEmail ? (
+            <>
+              <div className={styles.authPill} title={userEmail}>
+                <span className={styles.authDot} />
+                <span className={styles.authEmail}>{userEmail}</span>
+              </div>
+              <button
+                className={`${styles.refreshBtn} ${totalNew > 0 ? styles.hasNew : ''}`}
+                onClick={onOpenRefresh}
+                title="Synchroniser le catalogue"
+              >
+                🔄 Sync
+                {totalNew > 0 && <span className={styles.newBadge}>{totalNew}</span>}
+              </button>
+              <button className={styles.logoutBtn} onClick={onLogout} title="Se déconnecter">
+                ⏻
+              </button>
+            </>
+          ) : (
+            <button className={styles.loginBtn} onClick={onOpenLogin}>
+              🔑 Se connecter
+            </button>
+          )}
 
           <button
             className={`${styles.favPanelBtn} ${favPanelOpen ? styles.favPanelOpen : ''} ${favCount > 0 ? styles.hasFavs : ''}`}

@@ -8,6 +8,7 @@ import { ArtistSidebar } from './components/ArtistSidebar'
 import { SongCard } from './components/SongCard'
 import { FavPanel } from './components/FavPanel'
 import { QueuePanel } from './components/QueuePanel'
+import { LoginModal } from './components/LoginModal'
 import { RefreshModal } from './components/RefreshModal'
 import styles from './App.module.css'
 
@@ -30,11 +31,17 @@ export default function App() {
   const [activeArtist, setActiveArtist] = useState<string | null>(null)
   const [favPanelOpen, setFavPanelOpen] = useState(false)
   const [queuePanelOpen, setQueuePanelOpen] = useState(false)
-  const [refreshModalOpen, setRefreshModalOpen] = useState(false)
+  const [loginModalOpen, setLoginModalOpen] = useState(false)
+  const [syncModalOpen, setSyncModalOpen] = useState(false)
   const [artistDrawerOpen, setArtistDrawerOpen] = useState(false)
   const [credentials, setCredentials] = useState<Credentials | null>(null)
 
-  const { queue, isInQueue, addToQueue, removeFromQueue, moveInQueue, songStatus, entryStatus } = useQueue(credentials)
+  function handleAuthError() {
+    setCredentials(null)
+    setLoginModalOpen(true)
+  }
+
+  const { queue, isInQueue, addToQueue, removeFromQueue, moveInQueue, songStatus, entryStatus } = useQueue(credentials, handleAuthError)
 
   function patchFilters(patch: Partial<Filters>) {
     setFilters(prev => ({ ...prev, ...patch }))
@@ -72,9 +79,15 @@ export default function App() {
     setFavPanelOpen(false)
   }
 
-  async function handleRefresh(email: string, password: string) {
-    setCredentials({ email, password })
+  async function handleLogin(email: string, password: string) {
     await refresh(email, password)
+    // Les credentials ne sont sauvegardés que si refresh réussit (via refreshStatus)
+    setCredentials({ email, password })
+  }
+
+  function handleLogout() {
+    setCredentials(null)
+    setRefreshStatus({ state: 'idle' })
   }
 
   return (
@@ -89,11 +102,14 @@ export default function App() {
         favPanelOpen={favPanelOpen}
         onFiltersChange={patchFilters}
         onToggleFavPanel={() => { setFavPanelOpen(v => !v); setQueuePanelOpen(false) }}
-        onOpenRefresh={() => setRefreshModalOpen(true)}
+        onOpenRefresh={() => setSyncModalOpen(true)}
+        onOpenLogin={() => setLoginModalOpen(true)}
+        onLogout={handleLogout}
         onReset={handleReset}
         queueCount={queue.length}
         queuePanelOpen={queuePanelOpen}
         onToggleQueuePanel={() => { setQueuePanelOpen(v => !v); setFavPanelOpen(false) }}
+        userEmail={credentials?.email ?? null}
       />
 
       <button
@@ -130,7 +146,7 @@ export default function App() {
                 isFav={favIds.has(song.id)}
                 onToggleFav={toggleFav}
                 onAddToQueue={async (s) => {
-                  if (!credentials) { setRefreshModalOpen(true); return }
+                  if (!credentials) { setLoginModalOpen(true); return }
                   try { await addToQueue(s) } catch { /* affiché via songStatus */ }
                 }}
                 queueStatus={
@@ -177,19 +193,26 @@ export default function App() {
             onRemove={removeFromQueue}
             onMove={moveInQueue}
             onClose={() => setQueuePanelOpen(false)}
-            onNeedLogin={() => { setQueuePanelOpen(false); setRefreshModalOpen(true) }}
+            onNeedLogin={() => { setQueuePanelOpen(false); setLoginModalOpen(true) }}
           />
         )}
       </div>
 
-      {refreshModalOpen && (
+      {loginModalOpen && (
+        <LoginModal
+          status={refreshStatus}
+          onLogin={handleLogin}
+          onClose={() => { setLoginModalOpen(false); setRefreshStatus({ state: 'idle' }) }}
+          onClearNew={clearNewBadges}
+        />
+      )}
+
+      {syncModalOpen && credentials && (
         <RefreshModal
           status={refreshStatus}
-          onRefresh={handleRefresh}
-          onClose={() => {
-            setRefreshModalOpen(false)
-            setRefreshStatus({ state: 'idle' })
-          }}
+          userEmail={credentials.email}
+          onSync={() => refresh(credentials.email, credentials.password)}
+          onClose={() => { setSyncModalOpen(false); setRefreshStatus({ state: 'idle' }) }}
           onClearNew={clearNewBadges}
         />
       )}

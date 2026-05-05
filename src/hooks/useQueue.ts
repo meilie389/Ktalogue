@@ -4,7 +4,13 @@ import { PROXY_URL } from './useSongs'
 
 type ActionStatus = 'idle' | 'loading' | 'error'
 
-export function useQueue(credentials: Credentials | null) {
+function isAuthError(message: string) {
+  const m = message.toLowerCase()
+  return m.includes('authentification') || m.includes('session') ||
+         m.includes('login') || m.includes('unauthorized') || m.includes('401') || m.includes('403')
+}
+
+export function useQueue(credentials: Credentials | null, onAuthError?: () => void) {
   const [queue, setQueue] = useState<QueueEntry[]>([])
   // status par song.id (pour le bouton +) ou par karaokeId (pour remove/move)
   const [songStatus, setSongStatus] = useState<Record<number, ActionStatus>>({})
@@ -36,11 +42,13 @@ export function useQueue(credentials: Credentials | null) {
       setQueue(prev => [...prev, { song, karaokeId }])
       setSongStatus(prev => { const n = { ...prev }; delete n[song.id]; return n })
     } catch (e) {
+      const msg = (e as Error).message
       setSongStatus(prev => ({ ...prev, [song.id]: 'error' }))
       setTimeout(() => setSongStatus(prev => { const n = { ...prev }; delete n[song.id]; return n }), 2500)
+      if (isAuthError(msg)) { onAuthError?.(); return }
       throw e
     }
-  }, [credentials, isInQueue])
+  }, [credentials, isInQueue, onAuthError])
 
   const removeFromQueue = useCallback(async (entry: QueueEntry) => {
     if (!credentials) return
@@ -63,10 +71,12 @@ export function useQueue(credentials: Credentials | null) {
       setQueue(prev => prev.filter(e => e.song.id !== entry.song.id))
       setEntryStatus(prev => { const n = { ...prev }; delete n[entry.song.id]; return n })
     } catch (e) {
+      const msg = (e as Error).message
       setEntryStatus(prev => ({ ...prev, [entry.song.id]: 'error' }))
       setTimeout(() => setEntryStatus(prev => { const n = { ...prev }; delete n[entry.song.id]; return n }), 2500)
+      if (isAuthError(msg)) onAuthError?.()
     }
-  }, [credentials])
+  }, [credentials, onAuthError])
 
   const moveInQueue = useCallback(async (entry: QueueEntry, direction: 'up' | 'down') => {
     if (!credentials) return
@@ -94,11 +104,13 @@ export function useQueue(credentials: Credentials | null) {
         return next
       })
       setEntryStatus(prev => { const n = { ...prev }; delete n[entry.song.id]; return n })
-    } catch {
+    } catch (e) {
+      const msg = (e as Error).message
       setEntryStatus(prev => ({ ...prev, [entry.song.id]: 'error' }))
       setTimeout(() => setEntryStatus(prev => { const n = { ...prev }; delete n[entry.song.id]; return n }), 2500)
+      if (isAuthError(msg)) onAuthError?.()
     }
-  }, [credentials])
+  }, [credentials, onAuthError])
 
   const clearQueue = useCallback(() => setQueue([]), [])
 
