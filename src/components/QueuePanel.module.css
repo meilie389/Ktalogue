@@ -7,6 +7,7 @@
   flex-direction: column;
   flex-shrink: 0;
   overflow: hidden;
+  position: relative;
 }
 
 .header {
@@ -47,6 +48,39 @@
   line-height: 1;
 }
 .closeBtn:hover { color: var(--text); background: var(--surface2); }
+
+.reloadBtn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 15px;
+  padding: 2px 5px;
+  border-radius: 4px;
+  line-height: 1;
+  transition: color 0.15s;
+}
+.reloadBtn:hover:not(:disabled) { color: var(--accent); }
+.reloadBtn:disabled { opacity: 0.35; cursor: default; }
+.reloading { animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loadingOverlay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 20px;
+  font-size: 12px;
+  color: var(--muted);
+  position: absolute;
+  inset: 48px 0 0 0;
+  background: rgba(14, 11, 20, 0.5);
+  z-index: 1;
+}
+.spinner { font-size: 18px; animation: spin 0.8s linear infinite; display: inline-block; }
+
+.listFaded { opacity: 0.4; pointer-events: none; }
 
 .loginPrompt {
   padding: 20px 16px;

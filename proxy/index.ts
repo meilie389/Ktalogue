@@ -17,6 +17,7 @@
 const BASE_URL = "https://e-events.codewave.nc/";
 const SEARCH_URL = `${BASE_URL}search`;
 const LOGIN_URL = `${BASE_URL}login`;
+const KARAOKE_URL = `${BASE_URL}karaoke`;
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -141,12 +142,13 @@ async function loginAndCall(
   }
 
   // 3. Call target URL
+  const isHtmlTarget = targetUrl.includes("/karaoke") && !targetUrl.includes("?");
   const r4 = await fetch(targetUrl, {
     method: "GET",
     redirect: "follow",
     headers: {
       "Cookie": cookieHeader(jar),
-      "Accept": "application/json",
+      "Accept": isHtmlTarget ? "text/html" : "application/json",
       "User-Agent": "Mozilla/5.0",
       "X-Requested-With": "XMLHttpRequest",
       "Referer": `${BASE_URL}karaoke`,
@@ -176,6 +178,31 @@ function requireCredentials(body: Record<string, unknown>): { email: string; pas
   const password = body.password as string;
   if (!email || !password) throw new Error("email et password requis");
   return { email, password };
+}
+
+// ── Parseur de la file d'attente HTML ─────────────────────────────────────────
+
+interface QueueItem {
+  karaokeId: number;
+  title: string;
+  artist: string;
+}
+
+function parseKaraokeQueue(html: string): QueueItem[] {
+  // Extrait tous les karaokeIds (via removeSong) et les textes <p class="col-7 mb-1"> dans l'ordre
+  const ids = [...html.matchAll(/removeSong\((\d+)\)/g)].map((m) => parseInt(m[1]));
+  const texts = [...html.matchAll(/<p class="col-7 mb-1">([\s\S]*?)<\/p>/g)].map((m) =>
+    m[1].trim()
+  );
+
+  return ids.map((karaokeId, i) => {
+    const raw = texts[i] ?? "";
+    // Format : "#1 -  Titre\n        Artiste"
+    const lines = raw.split("\n").map((l) => l.trim()).filter(Boolean);
+    const title = (lines[0] ?? "").replace(/^#\d+\s*-\s*/, "").trim();
+    const artist = (lines[1] ?? "").trim();
+    return { karaokeId, title, artist };
+  });
 }
 
 // ── Request handler ───────────────────────────────────────────────────────────
@@ -212,6 +239,27 @@ Deno.serve(async (req: Request) => {
 
   if (req.method !== "POST") {
     return new Response("Not found", { status: 404, headers: CORS_HEADERS });
+  }
+
+  // ── POST /queue ─────────────────────────────────────────────────────────────
+  if (url.pathname === "/queue") {
+    try {
+      const body = await parseBody(req);
+      const { email, password } = requireCredentials(body);
+      const upstream = await loginAndCall(email, password, KARAOKE_URL);
+      const html = await upstream.text();
+      const queue = parseKaraokeQueue(html);
+      return new Response(JSON.stringify(queue), {
+        status: 200,
+        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+      });
+    } catch (e) {
+      console.error("Proxy /queue error:", e);
+      return new Response(
+        JSON.stringify({ error: (e as Error).message }),
+        { status: 502, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } },
+      );
+    }
   }
 
   // ── POST /search ────────────────────────────────────────────────────────────

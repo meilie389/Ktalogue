@@ -5,18 +5,27 @@ interface Props {
   queue: QueueEntry[]
   entryStatus: Record<number, 'idle' | 'loading' | 'error'>
   hasCredentials: boolean
+  isLoadingQueue: boolean
+  onReload: () => void
   onRemove: (entry: QueueEntry) => void
   onMove: (entry: QueueEntry, direction: 'up' | 'down') => void
   onClose: () => void
   onNeedLogin: () => void
 }
 
-export function QueuePanel({ queue, entryStatus, hasCredentials, onRemove, onMove, onClose, onNeedLogin }: Props) {
+export function QueuePanel({ queue, entryStatus, hasCredentials, isLoadingQueue, onReload, onRemove, onMove, onClose, onNeedLogin }: Props) {
   return (
     <div className={styles.panel}>
       <div className={styles.header}>
         <span className={styles.title}>🎙 File d'attente</span>
         <span className={styles.count}>{queue.length}</span>
+        <button
+          className={`${styles.reloadBtn} ${isLoadingQueue ? styles.reloading : ''}`}
+          onClick={onReload}
+          disabled={isLoadingQueue || !hasCredentials}
+          title="Recharger la file"
+          aria-label="Recharger"
+        >⟳</button>
         <button className={styles.closeBtn} onClick={onClose} aria-label="Fermer">✕</button>
       </div>
 
@@ -27,14 +36,21 @@ export function QueuePanel({ queue, entryStatus, hasCredentials, onRemove, onMov
         </div>
       )}
 
-      {hasCredentials && queue.length === 0 && (
+      {hasCredentials && queue.length === 0 && !isLoadingQueue && (
         <div className={styles.empty}>
           <div className={styles.emptyIcon}>🎤</div>
           <p>La file est vide</p>
         </div>
       )}
 
-      <div className={styles.list}>
+      {isLoadingQueue && (
+        <div className={styles.loadingOverlay}>
+          <span className={styles.spinner}>⟳</span>
+          <span>Chargement…</span>
+        </div>
+      )}
+
+      <div className={`${styles.list} ${isLoadingQueue ? styles.listFaded : ''}`}>
         {queue.map((entry, idx) => {
           const st = entryStatus[entry.song.id]
           const isLoading = st === 'loading'

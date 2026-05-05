@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import type { Filters, Credentials } from './types'
 import { useSongs } from './hooks/useSongs'
 import { useQueue } from './hooks/useQueue'
@@ -43,7 +43,12 @@ export default function App() {
     setLoginModalOpen(true)
   }
 
-  const { queue, isInQueue, addToQueue, removeFromQueue, moveInQueue, songStatus, entryStatus } = useQueue(credentials, handleAuthError)
+  const { queue, isInQueue, isLoadingQueue, fetchQueue, addToQueue, removeFromQueue, moveInQueue, songStatus, entryStatus } = useQueue(credentials, handleAuthError)
+
+  // Auto-fetch de la file à l'ouverture du panneau
+  useEffect(() => {
+    if (queuePanelOpen && credentials) fetchQueue(allSongs)
+  }, [queuePanelOpen]) // eslint-disable-line
 
   function patchFilters(patch: Partial<Filters>) {
     setFilters(prev => ({ ...prev, ...patch }))
@@ -194,6 +199,8 @@ export default function App() {
             queue={queue}
             entryStatus={entryStatus}
             hasCredentials={!!credentials}
+            isLoadingQueue={isLoadingQueue}
+            onReload={() => fetchQueue(allSongs)}
             onRemove={removeFromQueue}
             onMove={moveInQueue}
             onClose={() => setQueuePanelOpen(false)}
