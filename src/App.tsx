@@ -108,10 +108,10 @@ export default function App() {
   }
 
   async function handleLogin(email: string, password: string) {
-    await refresh(email, password)
     const creds = { email, password }
     setCredentials(creds)
     saveSession(creds)
+    setLoginModalOpen(false)
   }
 
   function handleLogout() {
@@ -252,10 +252,8 @@ export default function App() {
 
       {loginModalOpen && (
         <LoginModal
-          status={refreshStatus}
           onLogin={handleLogin}
-          onClose={() => { setLoginModalOpen(false); setRefreshStatus({ state: 'idle' }) }}
-          onClearNew={clearNewBadges}
+          onClose={() => setLoginModalOpen(false)}
         />
       )}
 
