@@ -1,3 +1,4 @@
+import { useState, useRef, useEffect } from 'react'
 import type { Filters } from '../types'
 import styles from './Header.module.css'
 
@@ -28,6 +29,21 @@ export function Header({
   onFiltersChange, onToggleFavPanel, onToggleQueuePanel,
   onOpenRefresh, onOpenLogin, onLogout, onReset, onExportCatalog,
 }: Props) {
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+  const isAdmin = !!userEmail && userEmail === (import.meta.env.VITE_ADMIN_EMAIL ?? '')
+
+  useEffect(() => {
+    if (!menuOpen) return
+    function handleClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [menuOpen])
+
   return (
     <header className={styles.header}>
       <div className={styles.top}>
@@ -47,9 +63,35 @@ export function Header({
         <div className={styles.actions}>
           {userEmail ? (
             <>
-              <div className={styles.authPill} title={userEmail}>
-                <span className={styles.authDot} />
-                <span className={styles.authEmail}>{userEmail}</span>
+              <div className={styles.userMenu} ref={menuRef}>
+                <button
+                  className={`${styles.authPill} ${menuOpen ? styles.authPillOpen : ''}`}
+                  onClick={() => setMenuOpen(v => !v)}
+                >
+                  <span className={styles.authDot} />
+                  <span className={styles.authEmail}>{userEmail}</span>
+                  <span className={styles.authChevron}>{menuOpen ? '▴' : '▾'}</span>
+                </button>
+                {menuOpen && (
+                  <div className={styles.userDropdown}>
+                    <div className={styles.userDropdownEmail}>{userEmail}</div>
+                    <div className={styles.userDropdownDivider} />
+                    {isAdmin && (
+                      <button
+                        className={styles.userDropdownItem}
+                        onClick={() => { onExportCatalog(); setMenuOpen(false) }}
+                      >
+                        ⬇ Exporter le catalogue
+                      </button>
+                    )}
+                    <button
+                      className={`${styles.userDropdownItem} ${styles.userDropdownItemDanger}`}
+                      onClick={() => { onLogout(); setMenuOpen(false) }}
+                    >
+                      ⏻ Se déconnecter
+                    </button>
+                  </div>
+                )}
               </div>
               <button
                 className={`${styles.refreshBtn} ${totalNew > 0 ? styles.hasNew : ''}`}
@@ -58,9 +100,6 @@ export function Header({
               >
                 🔄 Sync
                 {totalNew > 0 && <span className={styles.newBadge}>{totalNew}</span>}
-              </button>
-              <button className={styles.logoutBtn} onClick={onLogout} title="Se déconnecter">
-                ⏻
               </button>
             </>
           ) : (
@@ -86,15 +125,6 @@ export function Header({
             {queueCount > 0 && <span className={styles.queueBadge}>{queueCount}</span>}
           </button>
 
-          {userEmail && userEmail === (import.meta.env.VITE_ADMIN_EMAIL ?? '') && (
-            <button
-              className={styles.exportBtn}
-              onClick={onExportCatalog}
-              title="Exporter le catalogue en JSON (pour mettre à jour songs.json)"
-            >
-              ⬇ Export
-            </button>
-          )}
         </div>
       </div>
 

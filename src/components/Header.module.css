@@ -161,8 +161,14 @@
   background: rgba(74, 222, 128, 0.08);
   border: 1px solid rgba(74, 222, 128, 0.3);
   border-radius: 20px;
-  padding: 4px 12px 4px 8px;
-  max-width: 160px;
+  padding: 4px 10px 4px 8px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.authPill:hover,
+.authPillOpen {
+  background: rgba(74, 222, 128, 0.14) !important;
+  border-color: rgba(74, 222, 128, 0.55) !important;
 }
 .authDot {
   width: 7px;
@@ -181,8 +187,68 @@
   font-family: var(--font-mono);
   color: rgb(74, 222, 128);
   white-space: nowrap;
+}
+.authChevron {
+  font-size: 9px;
+  color: rgba(74, 222, 128, 0.7);
+  margin-left: 2px;
+}
+
+/* Dropdown menu */
+.userMenu {
+  position: relative;
+}
+.userDropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 220px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  z-index: 200;
   overflow: hidden;
-  text-overflow: ellipsis;
+  animation: fadeDown 0.12s ease;
+}
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.userDropdownEmail {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--muted);
+  padding: 10px 14px 8px;
+  word-break: break-all;
+}
+.userDropdownDivider {
+  height: 1px;
+  background: var(--border);
+  margin: 0 10px;
+}
+.userDropdownItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.userDropdownItem:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+.userDropdownItemDanger {
+  color: #ef4444;
+}
+.userDropdownItemDanger:hover {
+  background: rgba(239, 68, 68, 0.08);
 }
 
 .logoutBtn {
