@@ -7,8 +7,11 @@
  *    chiffrés en transit via HTTPS)
  *
  * Endpoints :
- *   POST /search  { email, password }  → Song[]
- *   GET  /health                        → { ok: true }
+ *   POST /search          { email, password }                          → Song[]
+ *   POST /add             { email, password, song_id }                 → any
+ *   POST /remove          { email, password, karaoke_id }              → any
+ *   POST /change-position { email, password, karaoke_id, direction }   → any
+ *   GET  /health                                                        → { ok: true }
  */
 
 const BASE_URL = "https://e-events.codewave.nc/";
@@ -27,8 +30,6 @@ type CookieJar = Record<string, string>;
 
 function extractCookies(headers: Headers): CookieJar {
   const jar: CookieJar = {};
-  // Deno flattens Set-Cookie into one header separated by commas in some versions,
-  // but getSetCookie() is the reliable API
   const cookies = headers.getSetCookie?.() ?? [];
   for (const line of cookies) {
     const nv = line.split(";")[0];
@@ -55,9 +56,14 @@ function extractCsrfToken(html: string): string | null {
 
 // ── Auth + fetch ──────────────────────────────────────────────────────────────
 
-async function loginAndFetch(
+/**
+ * Se connecte avec email/password puis appelle targetUrl (GET).
+ * Retourne la Response brute de l'appel cible.
+ */
+async function loginAndCall(
   email: string,
   password: string,
+  targetUrl: string,
 ): Promise<Response> {
   let jar: CookieJar = {};
 
@@ -92,7 +98,7 @@ async function loginAndFetch(
 
   const r2 = await fetch(LOGIN_URL, {
     method: "POST",
-    redirect: "manual", // handle 302 ourselves to capture cookies
+    redirect: "manual",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
       "Cookie": cookieHeader(jar),
@@ -134,8 +140,8 @@ async function loginAndFetch(
     );
   }
 
-  // 3. GET /search
-  const r4 = await fetch(SEARCH_URL, {
+  // 3. Call target URL
+  const r4 = await fetch(targetUrl, {
     method: "GET",
     redirect: "follow",
     headers: {
@@ -143,15 +149,33 @@ async function loginAndFetch(
       "Accept": "application/json",
       "User-Agent": "Mozilla/5.0",
       "X-Requested-With": "XMLHttpRequest",
+      "Referer": `${BASE_URL}karaoke`,
     },
   });
 
   if (!r4.ok) {
     const body = await r4.text();
-    throw new Error(`GET /search failed ${r4.status}: ${body.slice(0, 300)}`);
+    throw new Error(`GET ${targetUrl} failed ${r4.status}: ${body.slice(0, 300)}`);
   }
 
   return r4;
+}
+
+// ── Helpers pour parser le body d'une requête POST ────────────────────────────
+
+async function parseBody(req: Request): Promise<Record<string, unknown>> {
+  try {
+    return await req.json();
+  } catch {
+    throw new Error("Body JSON invalide");
+  }
+}
+
+function requireCredentials(body: Record<string, unknown>): { email: string; password: string } {
+  const email = (body.email as string)?.trim();
+  const password = body.password as string;
+  if (!email || !password) throw new Error("email et password requis");
+  return { email, password };
 }
 
 // ── Request handler ───────────────────────────────────────────────────────────
@@ -171,37 +195,95 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  // POST /search
-  if (url.pathname === "/search" && req.method === "POST") {
-    let email: string, password: string;
+  if (req.method !== "POST") {
+    return new Response("Not found", { status: 404, headers: CORS_HEADERS });
+  }
 
+  // ── POST /search ────────────────────────────────────────────────────────────
+  if (url.pathname === "/search") {
     try {
-      const body = await req.json();
-      email = body.email?.trim();
-      password = body.password;
-      if (!email || !password) throw new Error("email et password requis");
-    } catch (e) {
-      return new Response(
-        JSON.stringify({ error: (e as Error).message }),
-        { status: 400, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } },
-      );
-    }
-
-    try {
-      const upstream = await loginAndFetch(email, password);
+      const body = await parseBody(req);
+      const { email, password } = requireCredentials(body);
+      const upstream = await loginAndCall(email, password, SEARCH_URL);
       const data = await upstream.json();
-
-      // Normalise: accept array, .data, or .items
-      const songs = Array.isArray(data)
-        ? data
-        : (data.data ?? data.items ?? []);
-
+      const songs = Array.isArray(data) ? data : (data.data ?? data.items ?? []);
       return new Response(JSON.stringify(songs), {
         status: 200,
         headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
       });
     } catch (e) {
-      console.error("Proxy error:", e);
+      console.error("Proxy /search error:", e);
+      return new Response(
+        JSON.stringify({ error: (e as Error).message }),
+        { status: 502, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } },
+      );
+    }
+  }
+
+  // ── POST /add ───────────────────────────────────────────────────────────────
+  if (url.pathname === "/add") {
+    try {
+      const body = await parseBody(req);
+      const { email, password } = requireCredentials(body);
+      const songId = body.song_id;
+      if (!songId) throw new Error("song_id requis");
+      const targetUrl = `${BASE_URL}add?song_id=${songId}`;
+      const upstream = await loginAndCall(email, password, targetUrl);
+      const data = await upstream.json();
+      return new Response(JSON.stringify(data), {
+        status: 200,
+        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+      });
+    } catch (e) {
+      console.error("Proxy /add error:", e);
+      return new Response(
+        JSON.stringify({ error: (e as Error).message }),
+        { status: 502, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } },
+      );
+    }
+  }
+
+  // ── POST /remove ────────────────────────────────────────────────────────────
+  if (url.pathname === "/remove") {
+    try {
+      const body = await parseBody(req);
+      const { email, password } = requireCredentials(body);
+      const karaokeId = body.karaoke_id;
+      if (!karaokeId) throw new Error("karaoke_id requis");
+      const targetUrl = `${BASE_URL}remove?karaoke_id=${karaokeId}`;
+      const upstream = await loginAndCall(email, password, targetUrl);
+      const data = await upstream.json();
+      return new Response(JSON.stringify(data), {
+        status: 200,
+        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+      });
+    } catch (e) {
+      console.error("Proxy /remove error:", e);
+      return new Response(
+        JSON.stringify({ error: (e as Error).message }),
+        { status: 502, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } },
+      );
+    }
+  }
+
+  // ── POST /change-position ───────────────────────────────────────────────────
+  if (url.pathname === "/change-position") {
+    try {
+      const body = await parseBody(req);
+      const { email, password } = requireCredentials(body);
+      const karaokeId = body.karaoke_id;
+      const direction = body.direction;
+      if (!karaokeId) throw new Error("karaoke_id requis");
+      if (direction !== "up" && direction !== "down") throw new Error("direction doit être 'up' ou 'down'");
+      const targetUrl = `${BASE_URL}change-position?karaoke_id=${karaokeId}&direction=${direction}`;
+      const upstream = await loginAndCall(email, password, targetUrl);
+      const data = await upstream.json();
+      return new Response(JSON.stringify(data), {
+        status: 200,
+        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+      });
+    } catch (e) {
+      console.error("Proxy /change-position error:", e);
       return new Response(
         JSON.stringify({ error: (e as Error).message }),
         { status: 502, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } },

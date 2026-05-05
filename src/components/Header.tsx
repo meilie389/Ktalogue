@@ -9,19 +9,24 @@ interface Props {
   filters: Filters
   langs: string[]
   favPanelOpen: boolean
+  queueCount: number
+  queuePanelOpen: boolean
   onFiltersChange: (f: Partial<Filters>) => void
   onToggleFavPanel: () => void
+  onToggleQueuePanel: () => void
   onOpenRefresh: () => void
+  onReset: () => void
 }
 
 export function Header({
   total, filtered, totalNew, favCount, filters, langs,
-  favPanelOpen, onFiltersChange, onToggleFavPanel, onOpenRefresh,
+  favPanelOpen, queueCount, queuePanelOpen,
+  onFiltersChange, onToggleFavPanel, onToggleQueuePanel, onOpenRefresh, onReset,
 }: Props) {
   return (
     <header className={styles.header}>
       <div className={styles.top}>
-        <div className={styles.logo}>🎤 Karaoké</div>
+        <div className={styles.logo} onClick={onReset} title="Retour à l'accueil" style={{ cursor: 'pointer' }}>🎤 Karaoké</div>
 
         <div className={styles.meta}>
           <span className={styles.pill}>
@@ -50,6 +55,15 @@ export function Header({
           >
             ♥ Ma liste
             {favCount > 0 && <span className={styles.favBadge}>{favCount}</span>}
+          </button>
+
+          <button
+            className={`${styles.queueBtn} ${queuePanelOpen ? styles.queueBtnOpen : ''} ${queueCount > 0 ? styles.queueBtnActive : ''}`}
+            onClick={onToggleQueuePanel}
+            title="File d'attente karaoké"
+          >
+            🎙 File
+            {queueCount > 0 && <span className={styles.queueBadge}>{queueCount}</span>}
           </button>
         </div>
       </div>

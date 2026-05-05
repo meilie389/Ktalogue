@@ -39,3 +39,13 @@ export interface RefreshStatus {
   newCount?: number
   message?: string
 }
+
+export interface Credentials {
+  email: string
+  password: string
+}
+
+export interface QueueEntry {
+  song: Song
+  karaokeId: number | null  // null si l'API ne retourne pas l'id
+}

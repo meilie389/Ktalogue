@@ -56,7 +56,38 @@
 }
 .resetBtn:hover { border-color: var(--accent); color: var(--accent); }
 
+/* Bouton artiste mobile — caché sur desktop */
+.artistMobileBtn {
+  display: none;
+}
+
 @media (max-width: 640px) {
   .grid { grid-template-columns: 1fr; }
   .catalog { padding: 10px 12px; }
+  .body { flex-direction: column; }
+
+  .artistMobileBtn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 14px;
+    background: var(--surface);
+    border: none;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    font-size: 13px;
+    cursor: pointer;
+    flex-shrink: 0;
+    width: 100%;
+    text-align: left;
+  }
+
+  .artistMobileBtnLabel {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--accent);
+    font-weight: 600;
+  }
 }

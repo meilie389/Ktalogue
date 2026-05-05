@@ -1,11 +1,13 @@
 import { useState, useMemo } from 'react'
-import type { Filters } from './types'
+import type { Filters, Credentials } from './types'
 import { useSongs } from './hooks/useSongs'
+import { useQueue } from './hooks/useQueue'
 import { useVirtualList } from './hooks/useVirtualList'
 import { Header } from './components/Header'
 import { ArtistSidebar } from './components/ArtistSidebar'
 import { SongCard } from './components/SongCard'
 import { FavPanel } from './components/FavPanel'
+import { QueuePanel } from './components/QueuePanel'
 import { RefreshModal } from './components/RefreshModal'
 import styles from './App.module.css'
 
@@ -27,7 +29,12 @@ export default function App() {
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS)
   const [activeArtist, setActiveArtist] = useState<string | null>(null)
   const [favPanelOpen, setFavPanelOpen] = useState(false)
+  const [queuePanelOpen, setQueuePanelOpen] = useState(false)
   const [refreshModalOpen, setRefreshModalOpen] = useState(false)
+  const [artistDrawerOpen, setArtistDrawerOpen] = useState(false)
+  const [credentials, setCredentials] = useState<Credentials | null>(null)
+
+  const { queue, isInQueue, addToQueue, removeFromQueue, moveInQueue, songStatus, entryStatus } = useQueue(credentials)
 
   function patchFilters(patch: Partial<Filters>) {
     setFilters(prev => ({ ...prev, ...patch }))
@@ -59,6 +66,17 @@ export default function App() {
     patchFilters({ query: '' })
   }
 
+  function handleReset() {
+    setFilters(DEFAULT_FILTERS)
+    setActiveArtist(null)
+    setFavPanelOpen(false)
+  }
+
+  async function handleRefresh(email: string, password: string) {
+    setCredentials({ email, password })
+    await refresh(email, password)
+  }
+
   return (
     <div className={styles.root}>
       <Header
@@ -70,9 +88,23 @@ export default function App() {
         langs={langs}
         favPanelOpen={favPanelOpen}
         onFiltersChange={patchFilters}
-        onToggleFavPanel={() => setFavPanelOpen(v => !v)}
+        onToggleFavPanel={() => { setFavPanelOpen(v => !v); setQueuePanelOpen(false) }}
         onOpenRefresh={() => setRefreshModalOpen(true)}
+        onReset={handleReset}
+        queueCount={queue.length}
+        queuePanelOpen={queuePanelOpen}
+        onToggleQueuePanel={() => { setQueuePanelOpen(v => !v); setFavPanelOpen(false) }}
       />
+
+      <button
+        className={styles.artistMobileBtn}
+        onClick={() => setArtistDrawerOpen(true)}
+        aria-label="Choisir un artiste"
+      >
+        <span>🎤</span>
+        <span className={styles.artistMobileBtnLabel}>{activeArtist ?? 'Tous les artistes'}</span>
+        <span>▾</span>
+      </button>
 
       <div className={styles.body}>
         <ArtistSidebar
@@ -80,6 +112,8 @@ export default function App() {
           total={allSongs.length}
           activeArtist={activeArtist}
           onSelect={handleSelectArtist}
+          drawerOpen={artistDrawerOpen}
+          onDrawerClose={() => setArtistDrawerOpen(false)}
         />
 
         <main className={styles.catalog}>
@@ -95,6 +129,16 @@ export default function App() {
                 song={song}
                 isFav={favIds.has(song.id)}
                 onToggleFav={toggleFav}
+                onAddToQueue={async (s) => {
+                  if (!credentials) { setRefreshModalOpen(true); return }
+                  try { await addToQueue(s) } catch { /* affiché via songStatus */ }
+                }}
+                queueStatus={
+                  isInQueue(song.id) ? 'queued'
+                  : songStatus[song.id] === 'loading' ? 'loading'
+                  : songStatus[song.id] === 'error' ? 'error'
+                  : undefined
+                }
               />
             ))}
           </div>
@@ -124,12 +168,24 @@ export default function App() {
             onClose={() => setFavPanelOpen(false)}
           />
         )}
+
+        {queuePanelOpen && (
+          <QueuePanel
+            queue={queue}
+            entryStatus={entryStatus}
+            hasCredentials={!!credentials}
+            onRemove={removeFromQueue}
+            onMove={moveInQueue}
+            onClose={() => setQueuePanelOpen(false)}
+            onNeedLogin={() => { setQueuePanelOpen(false); setRefreshModalOpen(true) }}
+          />
+        )}
       </div>
 
       {refreshModalOpen && (
         <RefreshModal
           status={refreshStatus}
-          onRefresh={refresh}
+          onRefresh={handleRefresh}
           onClose={() => {
             setRefreshModalOpen(false)
             setRefreshStatus({ state: 'idle' })
