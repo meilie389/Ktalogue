@@ -1,5 +1,6 @@
 import type { QueueEntry } from '../types'
 import { Spinner } from './Spinner'
+import { BottomSheet } from './BottomSheet'
 import styles from './QueuePanel.module.css'
 
 interface Props {
@@ -15,42 +16,40 @@ interface Props {
 }
 
 export function QueuePanel({ queue, entryStatus, hasCredentials, isLoadingQueue, onReload, onRemove, onMove, onClose, onNeedLogin }: Props) {
-  return (
-    <div className={styles.panel}>
-      <div className={styles.header}>
-        <span className={styles.title}>🎙 File d'attente</span>
-        <span className={styles.count}>{queue.length}</span>
-        <button
-          className={`${styles.reloadBtn} ${isLoadingQueue ? styles.reloading : ''}`}
-          onClick={onReload}
-          disabled={isLoadingQueue || !hasCredentials}
-          title="Recharger la file"
-          aria-label="Recharger"
-        >{isLoadingQueue ? <Spinner size={13} /> : '⟳'}</button>
-        <button className={styles.closeBtn} onClick={onClose} aria-label="Fermer">✕</button>
-      </div>
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 640
 
+  const reloadBtn = (
+    <button
+      className={`${styles.reloadBtn} ${isLoadingQueue ? styles.reloading : ''}`}
+      onClick={onReload}
+      disabled={isLoadingQueue || !hasCredentials}
+      title="Recharger la file"
+      aria-label="Recharger"
+    >{isLoadingQueue ? <Spinner size={13} /> : '⟳'}</button>
+  )
+
+  const title = <>🎙 File d'attente <span className={styles.count}>{queue.length}</span></>
+
+  const content = (
+    <>
       {!hasCredentials && (
         <div className={styles.loginPrompt}>
           <p>Connecte-toi pour gérer la file.</p>
           <button className={styles.loginBtn} onClick={onNeedLogin}>Se connecter</button>
         </div>
       )}
-
       {hasCredentials && queue.length === 0 && !isLoadingQueue && (
         <div className={styles.empty}>
           <div className={styles.emptyIcon}>🎤</div>
           <p>La file est vide</p>
         </div>
       )}
-
       {isLoadingQueue && (
         <div className={styles.loadingOverlay}>
           <Spinner size={20} />
           <span>Chargement…</span>
         </div>
       )}
-
       <div className={`${styles.list} ${isLoadingQueue ? styles.listFaded : ''}`}>
         {queue.map((entry, idx) => {
           const st = entryStatus[entry.song.id]
@@ -67,24 +66,9 @@ export function QueuePanel({ queue, entryStatus, hasCredentials, isLoadingQueue,
                 )}
               </div>
               <div className={styles.actions}>
-                <button
-                  className={styles.moveBtn}
-                  onClick={() => onMove(entry, 'up')}
-                  disabled={isLoading || idx === 0 || entry.karaokeId === null}
-                  title="Monter"
-                >▲</button>
-                <button
-                  className={styles.moveBtn}
-                  onClick={() => onMove(entry, 'down')}
-                  disabled={isLoading || idx === queue.length - 1 || entry.karaokeId === null}
-                  title="Descendre"
-                >▼</button>
-                <button
-                  className={styles.removeBtn}
-                  onClick={() => onRemove(entry)}
-                  disabled={isLoading}
-                  title="Retirer"
-                >
+                <button className={styles.moveBtn} onClick={() => onMove(entry, 'up')} disabled={isLoading || idx === 0 || entry.karaokeId === null} title="Monter">▲</button>
+                <button className={styles.moveBtn} onClick={() => onMove(entry, 'down')} disabled={isLoading || idx === queue.length - 1 || entry.karaokeId === null} title="Descendre">▼</button>
+                <button className={styles.removeBtn} onClick={() => onRemove(entry)} disabled={isLoading} title="Retirer">
                   {isLoading ? <Spinner size={12} /> : isError ? '✗' : '✕'}
                 </button>
               </div>
@@ -92,6 +76,26 @@ export function QueuePanel({ queue, entryStatus, hasCredentials, isLoadingQueue,
           )
         })}
       </div>
+    </>
+  )
+
+  if (isMobile) {
+    return (
+      <BottomSheet title={title} onClose={onClose} headerActions={reloadBtn}>
+        {content}
+      </BottomSheet>
+    )
+  }
+
+  return (
+    <div className={styles.panel}>
+      <div className={styles.header}>
+        <span className={styles.title}>🎙 File d'attente</span>
+        <span className={styles.count}>{queue.length}</span>
+        {reloadBtn}
+        <button className={styles.closeBtn} onClick={onClose} aria-label="Fermer">✕</button>
+      </div>
+      {content}
     </div>
   )
 }

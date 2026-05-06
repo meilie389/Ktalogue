@@ -1,3 +1,4 @@
+import { BottomSheet } from './BottomSheet'
 import styles from './ArtistSidebar.module.css'
 
 interface Props {
@@ -48,21 +49,11 @@ export function ArtistSidebar({ artists, total, activeArtist, onSelect, drawerOp
 
       {/* Drawer mobile */}
       {drawerOpen && (
-        <div className={styles.overlay} onClick={onDrawerClose}>
-          <div className={styles.drawer} onClick={e => e.stopPropagation()}>
-            <div className={styles.drawerHeader}>
-              <span className={styles.drawerTitle}>Artistes</span>
-              <button
-                className={styles.drawerClose}
-                onClick={onDrawerClose}
-                aria-label="Fermer"
-              >✕</button>
-            </div>
-            <div className={styles.drawerList}>
-              {artistList}
-            </div>
+        <BottomSheet title="🎤 Artistes" onClose={onDrawerClose ?? (() => {})}>
+          <div className={styles.drawerList}>
+            {artistList}
           </div>
-        </div>
+        </BottomSheet>
       )}
     </>
   )
