@@ -218,6 +218,25 @@ Deno.serve(async (req: Request) => {
 
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS_HEADERS });
   if (url.pathname === "/health") return jsonOk({ ok: true });
+
+  // ── GET /sessions (debug) ─────────────────────────────────────────────────
+  if (req.method === "GET" && url.pathname === "/sessions") {
+    const secret = Deno.env.get("DEBUG_SECRET");
+    if (!secret || url.searchParams.get("secret") !== secret) {
+      return new Response("Forbidden", { status: 403, headers: CORS_HEADERS });
+    }
+    const sessions: Record<string, unknown>[] = [];
+    const iter = kv.list<KtaloqueSession>({ prefix: ["sessions"] });
+    for await (const entry of iter) {
+      sessions.push({
+        token: entry.key[1],
+        email: entry.value.email,
+        createdAt: new Date(entry.value.createdAt).toISOString(),
+      });
+    }
+    return jsonOk({ count: sessions.length, sessions });
+  }
+
   if (req.method !== "POST") return new Response("Not found", { status: 404, headers: CORS_HEADERS });
 
   // ── POST /login ──────────────────────────────────────────────────────────────
