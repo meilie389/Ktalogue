@@ -10,6 +10,7 @@ import { FavPanel } from './components/FavPanel'
 import { QueuePanel } from './components/QueuePanel'
 import { LoginModal } from './components/LoginModal'
 import { RefreshModal } from './components/RefreshModal'
+import { InfoPanel } from './components/InfoPanel'
 import { usePreview } from './hooks/usePreview'
 import { MiniPlayer } from './components/MiniPlayer'
 import { saveSession, loadSession, clearSession } from './utils/session'
@@ -34,6 +35,7 @@ export default function App() {
   const [activeArtist, setActiveArtist] = useState<string | null>(null)
   const [favPanelOpen, setFavPanelOpen] = useState(false)
   const [queuePanelOpen, setQueuePanelOpen] = useState(false)
+  const [infoPanelOpen, setInfoPanelOpen] = useState(false)
   const [loginModalOpen, setLoginModalOpen] = useState(false)
   const [syncModalOpen, setSyncModalOpen] = useState(false)
   const [artistDrawerOpen, setArtistDrawerOpen] = useState(false)
@@ -148,16 +150,18 @@ export default function App() {
         langs={langs}
         favPanelOpen={favPanelOpen}
         onFiltersChange={patchFilters}
-        onToggleFavPanel={() => { setFavPanelOpen(v => !v); setQueuePanelOpen(false) }}
+        onToggleFavPanel={() => { setFavPanelOpen(v => !v); setQueuePanelOpen(false); setInfoPanelOpen(false) }}
         onOpenRefresh={() => setSyncModalOpen(true)}
         onOpenLogin={() => setLoginModalOpen(true)}
         onLogout={handleLogout}
         onReset={handleReset}
         queueCount={queue.length}
         queuePanelOpen={queuePanelOpen}
-        onToggleQueuePanel={() => { setQueuePanelOpen(v => !v); setFavPanelOpen(false) }}
+        onToggleQueuePanel={() => { setQueuePanelOpen(v => !v); setFavPanelOpen(false); setInfoPanelOpen(false) }}
         userEmail={credentials?.email ?? null}
         onExportCatalog={handleExportCatalog}
+        infoPanelOpen={infoPanelOpen}
+        onToggleInfoPanel={() => setInfoPanelOpen(v => !v)}
       />
 
       <button
@@ -236,6 +240,19 @@ export default function App() {
             onClear={clearFavs}
             onExport={handleExportFavs}
             onClose={() => setFavPanelOpen(false)}
+            onPreview={playPreview}
+            onAddToQueue={async (s) => {
+              if (!credentials) { setLoginModalOpen(true); return }
+              try { await addToQueue(s) } catch { /* affiché via songStatus */ }
+            }}
+            isInQueue={isInQueue}
+            songStatus={songStatus}
+            previewSongId={previewTrack?.songId}
+            previewStatus={
+              previewTrack
+                ? previewLoading ? 'loading' : previewPlaying ? 'playing' : 'idle'
+                : undefined
+            }
           />
         )}
 
@@ -250,6 +267,14 @@ export default function App() {
             onMove={moveInQueue}
             onClose={() => setQueuePanelOpen(false)}
             onNeedLogin={() => { setQueuePanelOpen(false); setLoginModalOpen(true) }}
+          />
+        )}
+
+        {infoPanelOpen && (
+          <InfoPanel
+            session={credentials}
+            onClose={() => setInfoPanelOpen(false)}
+            onAuthError={handleAuthError}
           />
         )}
       </div>

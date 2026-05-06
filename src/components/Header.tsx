@@ -21,6 +21,8 @@ interface Props {
   onLogout: () => void
   onReset: () => void
   onExportCatalog: () => void
+  infoPanelOpen: boolean
+  onToggleInfoPanel: () => void
 }
 
 export function Header({
@@ -28,6 +30,7 @@ export function Header({
   favPanelOpen, queueCount, queuePanelOpen, userEmail,
   onFiltersChange, onToggleFavPanel, onToggleQueuePanel,
   onOpenRefresh, onOpenLogin, onLogout, onReset, onExportCatalog,
+  infoPanelOpen, onToggleInfoPanel,
 }: Props) {
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -130,6 +133,14 @@ export function Header({
           >
             🎙<span className={styles.btnLabel}> File</span>
             {queueCount > 0 && <span className={styles.queueBadge}>{queueCount}</span>}
+          </button>
+
+          <button
+            className={`${styles.infoBtn} ${infoPanelOpen ? styles.infoBtnOpen : ''}`}
+            onClick={onToggleInfoPanel}
+            title="Infos soirée"
+          >
+            ℹ️<span className={styles.btnLabel}> Infos</span>
           </button>
 
         </div>

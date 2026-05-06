@@ -9,6 +9,8 @@
  *   POST /add              { token, song_id }                        → any
  *   POST /remove           { token, karaoke_id }                     → any
  *   POST /change-position  { token, karaoke_id, direction }          → any
+ *   POST /songrequest      { token, value }                          → { ok: true }
+ *   POST /top              { token }                                  → TopEntry[]
  *   GET  /health                                                       → { ok: true }
  *
  * Sessions stockées dans Deno KV :
@@ -243,6 +245,36 @@ function parseKaraokeQueue(html: string): QueueItem[] {
   });
 }
 
+// ── Parseur du top musique HTML ───────────────────────────────────────────────
+
+interface TopEntry { rank: number; title: string; artist: string; }
+
+function parseTopMusique(html: string): TopEntry[] {
+  // Cherche les patterns du top : numéros de rang + titres dans la page karaoke
+  // Structure probable : liste ordonnée ou éléments avec rang
+  const results: TopEntry[] = [];
+
+  // Essaie plusieurs patterns selon la structure HTML e-events
+  // Pattern 1 : <li ...>...<strong>Titre</strong>...<span>Artiste</span>...</li>
+  const liMatches = [...html.matchAll(/<li[^>]*class="[^"]*top[^"]*"[^>]*>([\s\S]*?)<\/li>/gi)];
+  if (liMatches.length > 0) {
+    liMatches.slice(0, 5).forEach((m, i) => {
+      const inner = m[1].replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+      const parts = inner.split(/[-–]/).map(s => s.trim()).filter(Boolean);
+      results.push({ rank: i + 1, title: parts[0] ?? "—", artist: parts[1] ?? "" });
+    });
+    return results;
+  }
+
+  // Pattern 2 : entrées numérotées dans la queue avec rang ≤ 5
+  const queue = parseKaraokeQueue(html).slice(0, 5);
+  return queue.map((e, i) => ({ rank: i + 1, title: e.title, artist: e.artist }));
+}
+
+// ── Extraction CSRF token depuis la page karaoke ─────────────────────────────
+// (extractCsrfToken est déjà définie plus haut pour le login)
+// On réutilise la même fonction.
+
 // ── Request handler ───────────────────────────────────────────────────────────
 
 Deno.serve(async (req: Request) => {
@@ -373,6 +405,77 @@ Deno.serve(async (req: Request) => {
     } catch (e) {
       const err = e as Error & { status?: number };
       console.error("Proxy /change-position error:", err.message);
+      return jsonError(err.message, err.status ?? 502);
+    }
+  }
+
+  // ── POST /songrequest ────────────────────────────────────────────────────────
+  if (url.pathname === "/songrequest") {
+    try {
+      const body = await parseBody(req);
+      const session = await requireSession(body);
+      if (!body.value || typeof body.value !== "string" || !body.value.trim()) {
+        return jsonError("value requis", 400);
+      }
+
+      // 1. Récupère un CSRF token frais depuis la page karaoke
+      const pageRes = await fetch(KARAOKE_URL, {
+        method: "GET",
+        redirect: "manual",
+        headers: {
+          "Cookie": cookieHeader(session.cookies),
+          "Accept": "text/html",
+          "User-Agent": "Mozilla/5.0",
+          "Referer": BASE_URL,
+        },
+      });
+      if (pageRes.status === 301 || pageRes.status === 302) {
+        await deleteSession(session.token);
+        return jsonError("Session expirée. Reconnecte-toi.", 401);
+      }
+      const pageHtml = await pageRes.text();
+      const csrfToken = extractCsrfToken(pageHtml);
+      if (!csrfToken) return jsonError("CSRF token introuvable", 502);
+
+      // 2. POST /songrequest
+      const formData = new URLSearchParams({ _token: csrfToken, value: body.value.trim() });
+      const srRes = await fetch(`${BASE_URL}songrequest`, {
+        method: "POST",
+        redirect: "manual",
+        headers: {
+          "Cookie": cookieHeader(session.cookies),
+          "Content-Type": "application/x-www-form-urlencoded",
+          "Origin": BASE_URL.replace(/\/$/, ""),
+          "Referer": KARAOKE_URL,
+          "User-Agent": "Mozilla/5.0",
+          "Accept": "text/html,application/xhtml+xml",
+        },
+        body: formData.toString(),
+      });
+
+      // 302 = succès (Laravel redirige après POST)
+      if (srRes.status === 302 || srRes.status === 200) {
+        return jsonOk({ ok: true });
+      }
+      return jsonError(`Erreur ${srRes.status}`, 502);
+    } catch (e) {
+      const err = e as Error & { status?: number };
+      console.error("Proxy /songrequest error:", err.message);
+      return jsonError(err.message, err.status ?? 502);
+    }
+  }
+
+  // ── POST /top ─────────────────────────────────────────────────────────────
+  if (url.pathname === "/top") {
+    try {
+      const body = await parseBody(req);
+      const session = await requireSession(body);
+      const upstream = await callOrExpire(session.token, session, KARAOKE_URL);
+      const html = await upstream.text();
+      return jsonOk(parseTopMusique(html));
+    } catch (e) {
+      const err = e as Error & { status?: number };
+      console.error("Proxy /top error:", err.message);
       return jsonError(err.message, err.status ?? 502);
     }
   }

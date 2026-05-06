@@ -104,15 +104,23 @@
 .item {
   padding: 8px 10px;
   border-radius: 8px;
-  border-bottom: 1px solid rgba(46, 38, 64, 0.5);
+  border-bottom: 1px solid rgba(180, 168, 210, 0.3);
   display: flex;
   align-items: center;
   gap: 8px;
   transition: background 0.12s;
 }
 .item:hover { background: var(--surface2); }
+.itemPlaying { background: rgba(124, 58, 237, 0.05) !important; }
 
 .itemInfo { flex: 1; min-width: 0; }
+
+.itemActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
 
 .itemTitle {
   font-size: 12px;
