@@ -121,6 +121,10 @@ export function useSongs() {
         body: JSON.stringify({ token }),
       })
       if (!res.ok) {
+        if (res.status === 401) {
+          const err = Object.assign(new Error('Session expirée. Reconnecte-toi.'), { status: 401 })
+          throw err
+        }
         const err = await res.text()
         throw new Error(err || `HTTP ${res.status}`)
       }

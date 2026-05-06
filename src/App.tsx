@@ -278,7 +278,14 @@ export default function App() {
         <RefreshModal
           status={refreshStatus}
           userEmail={credentials.email}
-          onSync={() => refresh(credentials.token)}
+          onSync={async () => {
+            try {
+              await refresh(credentials.token)
+            } catch (e) {
+              if ((e as Error & { status?: number }).status === 401) handleAuthError()
+              else throw e
+            }
+          }}
           onClose={() => { setSyncModalOpen(false); setRefreshStatus({ state: 'idle' }) }}
           onClearNew={clearNewBadges}
         />

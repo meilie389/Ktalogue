@@ -150,7 +150,7 @@ async function callWithCookies(cookies: CookieJar, targetUrl: string): Promise<R
   const isHtmlTarget = targetUrl.includes("/karaoke") && !targetUrl.includes("?");
   const r = await fetch(targetUrl, {
     method: "GET",
-    redirect: "follow",
+    redirect: "manual",          // on gère les redirections manuellement
     headers: {
       "Cookie": cookieHeader(cookies),
       "Accept": isHtmlTarget ? "text/html" : "application/json",
@@ -159,9 +159,27 @@ async function callWithCookies(cookies: CookieJar, targetUrl: string): Promise<R
       "Referer": `${BASE_URL}karaoke`,
     },
   });
+
+  // 302 → e-events redirige vers la page de login : session expirée côté e-events
+  if (r.status === 301 || r.status === 302) {
+    const err = Object.assign(
+      new Error("Session expirée. Reconnecte-toi."),
+      { status: 401 }
+    );
+    throw err;
+  }
+
   if (!r.ok) {
     const body = await r.text();
-    throw new Error(`GET ${targetUrl} failed ${r.status}: ${body.slice(0, 300)}`);
+    const isAuthFailure = r.status === 401 || r.status === 403 ||
+      body.toLowerCase().includes("login") || body.toLowerCase().includes("unauthenticated");
+    const err = Object.assign(
+      new Error(isAuthFailure
+        ? "Session expirée. Reconnecte-toi."
+        : `GET ${targetUrl} failed ${r.status}: ${body.slice(0, 300)}`),
+      { status: isAuthFailure ? 401 : r.status }
+    );
+    throw err;
   }
   return r;
 }
@@ -173,12 +191,26 @@ async function parseBody(req: Request): Promise<Record<string, unknown>> {
   catch { throw new Error("Body JSON invalide"); }
 }
 
-async function requireSession(body: Record<string, unknown>): Promise<KtaloqueSession> {
+async function requireSession(body: Record<string, unknown>): Promise<KtaloqueSession & { token: string }> {
   const token = body.token as string;
   if (!token) throw Object.assign(new Error("Token requis"), { status: 401 });
   const session = await getSession(token);
   if (!session) throw Object.assign(new Error("Session expirée. Reconnecte-toi."), { status: 401 });
-  return session;
+  return { ...session, token };
+}
+
+// ── Exécute un appel e-events, supprime la session KV si les cookies sont périmés ──
+async function callOrExpire(token: string, session: KtaloqueSession, targetUrl: string): Promise<Response> {
+  try {
+    return await callWithCookies(session.cookies, targetUrl);
+  } catch (e) {
+    const err = e as Error & { status?: number };
+    if (err.status === 401) {
+      // Cookies e-events périmés → on purge la session KV pour forcer re-login
+      await deleteSession(token);
+    }
+    throw e;
+  }
 }
 
 function jsonOk(data: unknown): Response {
@@ -272,7 +304,7 @@ Deno.serve(async (req: Request) => {
     try {
       const body = await parseBody(req);
       const session = await requireSession(body);
-      const upstream = await callWithCookies(session.cookies, KARAOKE_URL);
+      const upstream = await callOrExpire(session.token, session, KARAOKE_URL);
       return jsonOk(parseKaraokeQueue(await upstream.text()));
     } catch (e) {
       const err = e as Error & { status?: number };
@@ -286,7 +318,7 @@ Deno.serve(async (req: Request) => {
     try {
       const body = await parseBody(req);
       const session = await requireSession(body);
-      const upstream = await callWithCookies(session.cookies, SEARCH_URL);
+      const upstream = await callOrExpire(session.token, session, SEARCH_URL);
       const data = await upstream.json();
       return jsonOk(Array.isArray(data) ? data : (data.data ?? data.items ?? []));
     } catch (e) {
@@ -302,7 +334,7 @@ Deno.serve(async (req: Request) => {
       const body = await parseBody(req);
       const session = await requireSession(body);
       if (!body.song_id) return jsonError("song_id requis", 400);
-      const upstream = await callWithCookies(session.cookies, `${BASE_URL}add?song_id=${body.song_id}`);
+      const upstream = await callOrExpire(session.token, session, `${BASE_URL}add?song_id=${body.song_id}`);
       return jsonOk(await upstream.json());
     } catch (e) {
       const err = e as Error & { status?: number };
@@ -317,7 +349,7 @@ Deno.serve(async (req: Request) => {
       const body = await parseBody(req);
       const session = await requireSession(body);
       if (!body.karaoke_id) return jsonError("karaoke_id requis", 400);
-      const upstream = await callWithCookies(session.cookies, `${BASE_URL}remove?karaoke_id=${body.karaoke_id}`);
+      const upstream = await callOrExpire(session.token, session, `${BASE_URL}remove?karaoke_id=${body.karaoke_id}`);
       return jsonOk(await upstream.json());
     } catch (e) {
       const err = e as Error & { status?: number };
@@ -333,8 +365,8 @@ Deno.serve(async (req: Request) => {
       const session = await requireSession(body);
       if (!body.karaoke_id) return jsonError("karaoke_id requis", 400);
       if (body.direction !== "up" && body.direction !== "down") return jsonError("direction doit être 'up' ou 'down'", 400);
-      const upstream = await callWithCookies(
-        session.cookies,
+      const upstream = await callOrExpire(
+        session.token, session,
         `${BASE_URL}change-position?karaoke_id=${body.karaoke_id}&direction=${body.direction}`,
       );
       return jsonOk(await upstream.json());

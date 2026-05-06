@@ -32,6 +32,7 @@ export function useQueue(session: Session | null, onAuthError?: () => void) {
         headers: proxyHeaders,
         body: JSON.stringify({ token: session!.token, song_id: song.id }),
       })
+      if (res.status === 401) { onAuthError?.(); return }
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }))
         throw new Error(err.error ?? `HTTP ${res.status}`)
@@ -64,6 +65,7 @@ export function useQueue(session: Session | null, onAuthError?: () => void) {
         headers: proxyHeaders,
         body: JSON.stringify({ token: session!.token, karaoke_id: entry.karaokeId }),
       })
+      if (res.status === 401) { onAuthError?.(); return }
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }))
         throw new Error(err.error ?? `HTTP ${res.status}`)
@@ -89,6 +91,7 @@ export function useQueue(session: Session | null, onAuthError?: () => void) {
         headers: proxyHeaders,
         body: JSON.stringify({ token: session!.token, karaoke_id: entry.karaokeId, direction }),
       })
+      if (res.status === 401) { onAuthError?.(); return }
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }))
         throw new Error(err.error ?? `HTTP ${res.status}`)
@@ -133,6 +136,7 @@ export function useQueue(session: Session | null, onAuthError?: () => void) {
         headers: proxyHeaders,
         body: JSON.stringify({ token: session!.token }),
       })
+      if (res.status === 401) { onAuthError?.(); return }
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }))
         throw new Error(err.error ?? `HTTP ${res.status}`)
