@@ -44,9 +44,9 @@ export interface RefreshStatus {
   message?: string
 }
 
-export interface Credentials {
+export interface Session {
+  token: string
   email: string
-  password: string
 }
 
 export interface QueueEntry {

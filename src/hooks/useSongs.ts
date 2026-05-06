@@ -112,13 +112,13 @@ export function useSongs() {
     })
   }, [])
 
-  const refresh = useCallback(async (email: string, password: string) => {
+  const refresh = useCallback(async (token: string) => {
     setRefreshStatus({ state: 'loading' })
     try {
       const res = await fetch(`${PROXY_URL}/search`, {
         method: 'POST',
         headers: proxyHeaders,
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ token }),
       })
       if (!res.ok) {
         const err = await res.text()

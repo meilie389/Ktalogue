@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import type { Song, Credentials, QueueEntry } from '../types'
+import type { Song, Session, QueueEntry } from '../types'
 import { PROXY_URL, proxyHeaders } from './useSongs'
 
 type ActionStatus = 'idle' | 'loading' | 'error'
@@ -10,7 +10,7 @@ function isAuthError(message: string) {
          m.includes('login') || m.includes('unauthorized') || m.includes('401') || m.includes('403')
 }
 
-export function useQueue(credentials: Credentials | null, onAuthError?: () => void) {
+export function useQueue(session: Session | null, onAuthError?: () => void) {
   const [queue, setQueue] = useState<QueueEntry[]>([])
   const [isLoadingQueue, setIsLoadingQueue] = useState(false)
   const [songStatus, setSongStatus] = useState<Record<number, ActionStatus>>({})
@@ -22,7 +22,7 @@ export function useQueue(credentials: Credentials | null, onAuthError?: () => vo
   )
 
   const addToQueue = useCallback(async (song: Song) => {
-    if (!credentials) throw new Error('Non connecté')
+    if (!session) throw new Error('Non connecté')
     if (isInQueue(song.id)) return
 
     setSongStatus(prev => ({ ...prev, [song.id]: 'loading' }))
@@ -30,7 +30,7 @@ export function useQueue(credentials: Credentials | null, onAuthError?: () => vo
       const res = await fetch(`${PROXY_URL}/add`, {
         method: 'POST',
         headers: proxyHeaders,
-        body: JSON.stringify({ ...credentials, song_id: song.id }),
+        body: JSON.stringify({ token: session!.token, song_id: song.id }),
       })
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }))
@@ -48,10 +48,10 @@ export function useQueue(credentials: Credentials | null, onAuthError?: () => vo
       if (isAuthError(msg)) { onAuthError?.(); return }
       throw e
     }
-  }, [credentials, isInQueue, onAuthError])
+  }, [session, isInQueue, onAuthError])
 
   const removeFromQueue = useCallback(async (entry: QueueEntry) => {
-    if (!credentials) return
+    if (!session) return
     if (entry.karaokeId === null) {
       // Suppression locale uniquement si pas d'id
       setQueue(prev => prev.filter(e => e.song.id !== entry.song.id))
@@ -62,7 +62,7 @@ export function useQueue(credentials: Credentials | null, onAuthError?: () => vo
       const res = await fetch(`${PROXY_URL}/remove`, {
         method: 'POST',
         headers: proxyHeaders,
-        body: JSON.stringify({ ...credentials, karaoke_id: entry.karaokeId }),
+        body: JSON.stringify({ token: session!.token, karaoke_id: entry.karaokeId }),
       })
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }))
@@ -76,10 +76,10 @@ export function useQueue(credentials: Credentials | null, onAuthError?: () => vo
       setTimeout(() => setEntryStatus(prev => { const n = { ...prev }; delete n[entry.song.id]; return n }), 2500)
       if (isAuthError(msg)) onAuthError?.()
     }
-  }, [credentials, onAuthError])
+  }, [session, onAuthError])
 
   const moveInQueue = useCallback(async (entry: QueueEntry, direction: 'up' | 'down') => {
-    if (!credentials) return
+    if (!session) return
     if (entry.karaokeId === null) return
 
     setEntryStatus(prev => ({ ...prev, [entry.song.id]: 'loading' }))
@@ -87,7 +87,7 @@ export function useQueue(credentials: Credentials | null, onAuthError?: () => vo
       const res = await fetch(`${PROXY_URL}/change-position`, {
         method: 'POST',
         headers: proxyHeaders,
-        body: JSON.stringify({ ...credentials, karaoke_id: entry.karaokeId, direction }),
+        body: JSON.stringify({ token: session!.token, karaoke_id: entry.karaokeId, direction }),
       })
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }))
@@ -120,18 +120,18 @@ export function useQueue(credentials: Credentials | null, onAuthError?: () => vo
       setTimeout(() => setEntryStatus(prev => { const n = { ...prev }; delete n[entry.song.id]; return n }), 2500)
       if (isAuthError(msg)) onAuthError?.()
     }
-  }, [credentials, onAuthError])
+  }, [session, onAuthError])
 
   const clearQueue = useCallback(() => setQueue([]), [])
 
   const fetchQueue = useCallback(async (allSongs?: Song[]) => {
-    if (!credentials) return
+    if (!session) return
     setIsLoadingQueue(true)
     try {
       const res = await fetch(`${PROXY_URL}/queue`, {
         method: 'POST',
         headers: proxyHeaders,
-        body: JSON.stringify({ ...credentials }),
+        body: JSON.stringify({ token: session!.token }),
       })
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }))
@@ -166,7 +166,7 @@ export function useQueue(credentials: Credentials | null, onAuthError?: () => vo
     } finally {
       setIsLoadingQueue(false)
     }
-  }, [credentials, onAuthError])
+  }, [session, onAuthError])
 
   return { queue, isInQueue, isLoadingQueue, fetchQueue, addToQueue, removeFromQueue, moveInQueue, clearQueue, songStatus, entryStatus }
 }

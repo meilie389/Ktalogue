@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
-import type { Filters, Credentials } from './types'
-import { useSongs } from './hooks/useSongs'
+import type { Filters, Session } from './types'
+import { useSongs, PROXY_URL } from './hooks/useSongs'
 import { useQueue } from './hooks/useQueue'
 import { useVirtualList } from './hooks/useVirtualList'
 import { Header } from './components/Header'
@@ -37,7 +37,7 @@ export default function App() {
   const [loginModalOpen, setLoginModalOpen] = useState(false)
   const [syncModalOpen, setSyncModalOpen] = useState(false)
   const [artistDrawerOpen, setArtistDrawerOpen] = useState(false)
-  const [credentials, setCredentials] = useState<Credentials | null>(() => loadSession())
+  const [credentials, setCredentials] = useState<Session | null>(() => loadSession())
 
   function handleAuthError() {
     setCredentials(null)
@@ -108,13 +108,30 @@ export default function App() {
   }
 
   async function handleLogin(email: string, password: string) {
-    const creds = { email, password }
-    setCredentials(creds)
-    saveSession(creds)
+    const res = await fetch(`${PROXY_URL}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }))
+      throw new Error(err.error ?? `HTTP ${res.status}`)
+    }
+    const { token, email: returnedEmail } = await res.json()
+    const session: Session = { token, email: returnedEmail }
+    setCredentials(session)
+    saveSession(session)
     setLoginModalOpen(false)
   }
 
-  function handleLogout() {
+  async function handleLogout() {
+    if (credentials) {
+      fetch(`${PROXY_URL}/logout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: credentials.token }),
+      }).catch(() => {}) // fire-and-forget
+    }
     setCredentials(null)
     clearSession()
     setRefreshStatus({ state: 'idle' })
@@ -261,7 +278,7 @@ export default function App() {
         <RefreshModal
           status={refreshStatus}
           userEmail={credentials.email}
-          onSync={() => refresh(credentials.email, credentials.password)}
+          onSync={() => refresh(credentials.token)}
           onClose={() => { setSyncModalOpen(false); setRefreshStatus({ state: 'idle' }) }}
           onClearNew={clearNewBadges}
         />
