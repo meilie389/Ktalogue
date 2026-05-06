@@ -1,5 +1,5 @@
 .header {
-  background: linear-gradient(135deg, #1a0533 0%, #0e0b14 50%, #001a2e 100%);
+  background: linear-gradient(135deg, #ede8f5 0%, #f5f0fa 50%, #e8f0fb 100%);
   border-bottom: 1px solid var(--border);
   padding: 14px 16px 12px;
   position: sticky;
@@ -68,13 +68,13 @@
 .refreshBtn:hover { border-color: var(--accent3); color: var(--accent3); }
 
 .hasNew {
-  border-color: rgba(74, 222, 128, 0.4) !important;
+  border-color: rgba(22, 163, 74, 0.4) !important;
   color: var(--green) !important;
 }
 
 .newBadge {
   background: var(--green);
-  color: #0e0b14;
+  color: #ffffff;
   font-size: 10px;
   font-family: var(--font-mono);
   font-weight: 700;
@@ -125,8 +125,8 @@
   white-space: nowrap;
 }
 .queueBtn:hover { border-color: var(--accent); color: var(--accent); }
-.queueBtnActive { border-color: rgba(192, 132, 252, 0.4); color: var(--accent); }
-.queueBtnOpen { background: rgba(192, 132, 252, 0.08); }
+.queueBtnActive { border-color: rgba(124, 58, 237, 0.35); color: var(--accent); }
+.queueBtnOpen { background: rgba(124, 58, 237, 0.07); }
 
 .queueBadge {
   background: var(--accent);
@@ -159,8 +159,8 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  background: rgba(74, 222, 128, 0.08);
-  border: 1px solid rgba(74, 222, 128, 0.3);
+  background: rgba(22, 163, 74, 0.07);
+  border: 1px solid rgba(22, 163, 74, 0.3);
   border-radius: 20px;
   padding: 4px 10px 4px 8px;
   cursor: pointer;
@@ -168,14 +168,14 @@
 }
 .authPill:hover,
 .authPillOpen {
-  background: rgba(74, 222, 128, 0.14) !important;
-  border-color: rgba(74, 222, 128, 0.55) !important;
+  background: rgba(22, 163, 74, 0.12) !important;
+  border-color: rgba(22, 163, 74, 0.5) !important;
 }
 .authDot {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: rgb(74, 222, 128);
+  background: rgb(22, 163, 74);
   flex-shrink: 0;
   animation: pulse 2s ease-in-out infinite;
 }
@@ -186,12 +186,12 @@
 .authEmail {
   font-size: 11px;
   font-family: var(--font-mono);
-  color: rgb(74, 222, 128);
+  color: rgb(22, 163, 74);
   white-space: nowrap;
 }
 .authChevron {
   font-size: 9px;
-  color: rgba(74, 222, 128, 0.7);
+  color: rgba(22, 163, 74, 0.7);
   margin-left: 2px;
 }
 
@@ -209,7 +209,7 @@
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   z-index: 200;
   overflow: hidden;
   animation: fadeDown 0.12s ease;
@@ -245,7 +245,7 @@
   transition: background 0.12s;
 }
 .userDropdownItem:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--surface2);
 }
 .userDropdownItemDanger {
   color: #ef4444;
@@ -360,24 +360,30 @@
 .chip:hover { border-color: var(--muted); color: var(--text); }
 
 .chipDuo {
-  border-color: rgba(56, 189, 248, 0.5);
+  border-color: rgba(2, 132, 199, 0.4);
   color: var(--duo);
-  background: rgba(56, 189, 248, 0.08);
+  background: rgba(2, 132, 199, 0.07);
 }
 
 .chipFav {
-  border-color: rgba(244, 114, 182, 0.5);
+  border-color: rgba(219, 39, 119, 0.4);
   color: var(--fav);
-  background: rgba(244, 114, 182, 0.08);
+  background: rgba(219, 39, 119, 0.07);
 }
 
 .chipNew {
-  border-color: rgba(74, 222, 128, 0.5);
+  border-color: rgba(22, 163, 74, 0.4);
   color: var(--green);
-  background: rgba(74, 222, 128, 0.08);
+  background: rgba(22, 163, 74, 0.07);
 }
 
 @media (max-width: 640px) {
   .meta { display: none; }
   .logo { font-size: 18px; }
+  .refreshBtn, .favPanelBtn, .queueBtn { padding: 8px 14px; font-size: 14px; }
+  .loginBtn { padding: 8px 16px; font-size: 14px; }
+  .searchInput { font-size: 15px; padding: 10px 34px 10px 36px; }
+  .select { font-size: 14px; padding: 10px 12px; }
+  .chip { font-size: 13.5px; padding: 8px 14px; }
+  .authEmail { font-size: 12px; }
 }

@@ -1,20 +1,20 @@
 :root {
-  --bg: #0e0b14;
-  --surface: #1a1525;
-  --surface2: #231d30;
-  --surface3: #2c2440;
-  --border: #2e2640;
-  --accent: #c084fc;
-  --accent2: #f472b6;
-  --accent3: #38bdf8;
-  --gold: #fbbf24;
-  --green: #4ade80;
-  --text: #e2d9f3;
-  --text2: #b8a9d4;
-  --muted: #6d5f8a;
-  --fav: #f472b6;
-  --duo: #38bdf8;
-  --new: #4ade80;
+  --bg: #f5f0fa;
+  --surface: #ffffff;
+  --surface2: #ede8f5;
+  --surface3: #e2daf0;
+  --border: #d4cce8;
+  --accent: #7c3aed;
+  --accent2: #db2777;
+  --accent3: #0284c7;
+  --gold: #d97706;
+  --green: #16a34a;
+  --text: #1e1333;
+  --text2: #4b3d6e;
+  --muted: #8b7aa8;
+  --fav: #db2777;
+  --duo: #0284c7;
+  --new: #16a34a;
   --radius: 10px;
   --radius-sm: 6px;
   --font-display: 'Playfair Display', serif;
@@ -35,6 +35,10 @@ body {
   font-family: var(--font-body);
   font-size: 14px;
   -webkit-font-smoothing: antialiased;
+}
+
+@media (max-width: 640px) {
+  body { font-size: 16px; }
 }
 
 /* Scrollbars */

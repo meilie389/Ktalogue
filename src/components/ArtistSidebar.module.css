@@ -28,7 +28,7 @@
   padding: 8px 14px;
   cursor: pointer;
   font-size: 12.5px;
-  border-bottom: 1px solid rgba(46, 38, 64, 0.4);
+  border-bottom: 1px solid rgba(180, 168, 210, 0.3);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -40,7 +40,7 @@
 .item:hover { background: var(--surface2); }
 
 .active {
-  background: rgba(192, 132, 252, 0.12) !important;
+  background: rgba(124, 58, 237, 0.1) !important;
   color: var(--accent);
 }
 
