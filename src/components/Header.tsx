@@ -76,6 +76,12 @@ export function Header({
                   <div className={styles.userDropdown}>
                     <div className={styles.userDropdownEmail}>{userEmail}</div>
                     <div className={styles.userDropdownDivider} />
+                    <button
+                      className={`${styles.userDropdownItem} ${totalNew > 0 ? styles.userDropdownItemNew : ''}`}
+                      onClick={() => { onOpenRefresh(); setMenuOpen(false) }}
+                    >
+                      🔄 Synchroniser{totalNew > 0 && <span className={styles.queueBadge}>{totalNew}</span>}
+                    </button>
                     {isAdmin && (
                       <button
                         className={styles.userDropdownItem}
@@ -98,21 +104,22 @@ export function Header({
                 onClick={onOpenRefresh}
                 title="Synchroniser le catalogue"
               >
-                🔄 Sync
+                🔄 <span className={styles.btnLabel}>Sync</span>
                 {totalNew > 0 && <span className={styles.newBadge}>{totalNew}</span>}
               </button>
             </>
           ) : (
             <button className={styles.loginBtn} onClick={onOpenLogin}>
-              🔑 Se connecter
+              🔑 <span className={styles.btnLabel}>Se connecter</span>
             </button>
           )}
 
           <button
             className={`${styles.favPanelBtn} ${favPanelOpen ? styles.favPanelOpen : ''} ${favCount > 0 ? styles.hasFavs : ''}`}
             onClick={onToggleFavPanel}
+            title="Mes favoris"
           >
-            ♥ Ma liste
+            ♥<span className={styles.btnLabel}> Ma liste</span>
             {favCount > 0 && <span className={styles.favBadge}>{favCount}</span>}
           </button>
 
@@ -121,7 +128,7 @@ export function Header({
             onClick={onToggleQueuePanel}
             title="File d'attente karaoké"
           >
-            🎙 File
+            🎙<span className={styles.btnLabel}> File</span>
             {queueCount > 0 && <span className={styles.queueBadge}>{queueCount}</span>}
           </button>
 

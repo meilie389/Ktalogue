@@ -253,6 +253,9 @@
 .userDropdownItemDanger:hover {
   background: rgba(239, 68, 68, 0.08);
 }
+.userDropdownItemNew {
+  color: var(--green);
+}
 
 .logoutBtn {
   background: none;
@@ -380,8 +383,10 @@
 @media (max-width: 640px) {
   .meta { display: none; }
   .logo { font-size: 18px; }
-  .refreshBtn, .favPanelBtn, .queueBtn { padding: 8px 14px; font-size: 14px; }
-  .loginBtn { padding: 8px 16px; font-size: 14px; }
+  /* Sur mobile : icône seule pour tous les boutons */
+  .btnLabel { display: none; }
+  .refreshBtn, .favPanelBtn, .queueBtn { padding: 8px 10px; font-size: 16px; }
+  .loginBtn { padding: 8px 12px; font-size: 14px; }
   .searchInput { font-size: 15px; padding: 10px 34px 10px 36px; }
   .select { font-size: 14px; padding: 10px 12px; }
   .chip { font-size: 13.5px; padding: 8px 14px; }
