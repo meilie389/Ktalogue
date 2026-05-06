@@ -1,4 +1,5 @@
 import type { QueueEntry } from '../types'
+import { Spinner } from './Spinner'
 import styles from './QueuePanel.module.css'
 
 interface Props {
@@ -25,7 +26,7 @@ export function QueuePanel({ queue, entryStatus, hasCredentials, isLoadingQueue,
           disabled={isLoadingQueue || !hasCredentials}
           title="Recharger la file"
           aria-label="Recharger"
-        >⟳</button>
+        >{isLoadingQueue ? <Spinner size={13} /> : '⟳'}</button>
         <button className={styles.closeBtn} onClick={onClose} aria-label="Fermer">✕</button>
       </div>
 
@@ -45,7 +46,7 @@ export function QueuePanel({ queue, entryStatus, hasCredentials, isLoadingQueue,
 
       {isLoadingQueue && (
         <div className={styles.loadingOverlay}>
-          <span className={styles.spinner}>⟳</span>
+          <Spinner size={20} />
           <span>Chargement…</span>
         </div>
       )}
@@ -84,7 +85,7 @@ export function QueuePanel({ queue, entryStatus, hasCredentials, isLoadingQueue,
                   disabled={isLoading}
                   title="Retirer"
                 >
-                  {isLoading ? '⟳' : isError ? '✗' : '✕'}
+                  {isLoading ? <Spinner size={12} /> : isError ? '✗' : '✕'}
                 </button>
               </div>
             </div>

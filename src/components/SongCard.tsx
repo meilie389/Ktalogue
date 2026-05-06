@@ -1,5 +1,6 @@
 import type { Song } from '../types'
 import { normalizeLang } from '../utils/normalize'
+import { Spinner } from './Spinner'
 import styles from './SongCard.module.css'
 
 interface Props {
@@ -50,7 +51,7 @@ export function SongCard({ song, isFav, onToggleFav, queueStatus, onAddToQueue, 
             title={previewStatus === 'playing' ? 'Pause' : 'Écouter un extrait'}
             aria-label="Extrait"
           >
-            {previewStatus === 'loading' ? '⟳' : previewStatus === 'playing' ? '⏸' : '▶'}
+            {previewStatus === 'loading' ? <Spinner size={10} /> : previewStatus === 'playing' ? '⏸' : '▶'}
           </button>
         )}
         {onAddToQueue && (
@@ -61,7 +62,7 @@ export function SongCard({ song, isFav, onToggleFav, queueStatus, onAddToQueue, 
             title={isQueued ? 'Dans la file' : isError ? 'Erreur, réessaie' : 'Ajouter à la file'}
             aria-label="Ajouter à la file"
           >
-            {isLoading ? '⟳' : isError ? '✗' : isQueued ? '✓' : '+'}
+            {isLoading ? <Spinner size={10} /> : isError ? '✗' : isQueued ? '✓' : '+'}
           </button>
         )}
         <button

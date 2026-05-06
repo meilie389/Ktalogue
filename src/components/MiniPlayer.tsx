@@ -1,4 +1,5 @@
 import type { PreviewTrack } from '../hooks/usePreview'
+import { Spinner } from './Spinner'
 import styles from './MiniPlayer.module.css'
 
 interface Props {
@@ -49,7 +50,7 @@ export function MiniPlayer({ track, isPlaying, isLoading, progress, duration, on
           disabled={isLoading}
           aria-label={isPlaying ? 'Pause' : 'Play'}
         >
-          {isLoading ? '⟳' : isPlaying ? '⏸' : '▶'}
+          {isLoading ? <Spinner size={16} /> : isPlaying ? '⏸' : '▶'}
         </button>
         <button className={styles.closeBtn} onClick={onClose} aria-label="Fermer le lecteur">✕</button>
       </div>

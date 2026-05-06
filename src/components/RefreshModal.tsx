@@ -1,4 +1,5 @@
 import type { RefreshStatus } from '../types'
+import { Spinner } from './Spinner'
 import styles from './RefreshModal.module.css'
 
 interface Props {
@@ -54,7 +55,7 @@ export function RefreshModal({ status, userEmail, onSync, onClose, onClearNew }:
             disabled={isLoading}
           >
             {isLoading
-              ? <span className={styles.spinner}>⟳ Sync en cours…</span>
+              ? <><Spinner size={13} />{' '}Sync en cours…</>
               : status.state === 'success' ? 'Resync' : 'Lancer la sync'}
           </button>
         </div>
