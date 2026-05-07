@@ -46,14 +46,7 @@ export function ArtistSidebar({ artists, total, activeArtist, onSelect, drawerOp
     const container = listRef.current
     const el = container?.querySelector(`[data-letter="${letter}"]`) as HTMLElement | null
     if (container && el) {
-      // offsetTop donne la position naturelle, indépendante du sticky
-      let top = 0
-      let curr: HTMLElement | null = el
-      while (curr && curr !== container) {
-        top += curr.offsetTop
-        curr = curr.offsetParent as HTMLElement | null
-      }
-      container.scrollTop = top
+      container.scrollTop = el.offsetTop
     }
   }
 
@@ -86,13 +79,7 @@ export function ArtistSidebar({ artists, total, activeArtist, onSelect, drawerOp
     const container = sidebarListRef.current
     const el = container?.querySelector(`[data-letter="${letter}"]`) as HTMLElement | null
     if (container && el) {
-      let top = 0
-      let curr: HTMLElement | null = el
-      while (curr && curr !== container) {
-        top += curr.offsetTop
-        curr = curr.offsetParent as HTMLElement | null
-      }
-      container.scrollTop = top
+      container.scrollTop = el.offsetTop
     }
   }
 
@@ -139,8 +126,8 @@ export function ArtistSidebar({ artists, total, activeArtist, onSelect, drawerOp
             )
           ) : (
             sidebarLetters.map(letter => (
-              <div key={letter}>
-                <div className={styles.letterHeader} data-letter={letter}>{letter}</div>
+              <div key={letter} data-letter={letter}>
+                <div className={styles.letterHeader}>{letter}</div>
                 {groupedSidebar!.get(letter)!.map(([name, count]) => (
                   <div
                     key={name}
@@ -218,8 +205,8 @@ export function ArtistSidebar({ artists, total, activeArtist, onSelect, drawerOp
           ) : (
             // Mode alphabétique : groupes avec en-tête lettre
             letters.map(letter => (
-              <div key={letter}>
-                <div className={styles.letterHeader} data-letter={letter}>{letter}</div>
+              <div key={letter} data-letter={letter}>
+                <div className={styles.letterHeader}>{letter}</div>
                 {grouped!.get(letter)!.map(([name, count]) => (
                   <div
                     key={name}
