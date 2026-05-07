@@ -9,7 +9,7 @@ interface Props {
   favSongs: Song[]
   onRemove: (id: number) => void
   onClear: () => void
-  onExport: () => void
+  onExport?: () => void
   onClose: () => void
   onAddToQueue?: (song: Song) => void
   onPreview?: (song: Song) => void
@@ -19,7 +19,7 @@ interface Props {
   previewStatus?: 'loading' | 'playing' | 'idle'
 }
 
-export function FavPanel({ favSongs, onRemove, onClear, onExport, onClose, onAddToQueue, onPreview, isInQueue, songStatus, previewSongId, previewStatus }: Props) {
+export function FavPanel({ favSongs, onRemove, onClear, onClose, onAddToQueue, onPreview, isInQueue, songStatus, previewSongId, previewStatus }: Props) {
   const [sortBy, setSortBy] = useState<'artist' | 'title' | 'added'>('artist')
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 640
 
@@ -107,9 +107,6 @@ export function FavPanel({ favSongs, onRemove, onClear, onExport, onClose, onAdd
       <div className={styles.actions}>
         <button className={styles.btnGhost} onClick={onClear} disabled={favSongs.length === 0}>
           Effacer
-        </button>
-        <button className={styles.btnPrimary} onClick={onExport} disabled={favSongs.length === 0}>
-          ⬇ Export JSON
         </button>
       </div>
     </>

@@ -272,6 +272,28 @@
   flex-direction: column;
 }
 
+.top5Row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.top5Rank {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent2);
+  font-family: var(--font-mono);
+  width: 28px;
+  flex-shrink: 0;
+  text-align: center;
+}
+
+.reglementView {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .songRow {
   display: flex;
   align-items: center;

@@ -1,29 +1,22 @@
-import { useState } from 'react'
-import type { Song, QueueEntry, Session } from '../types'
+import { useState, useEffect } from 'react'
+import type { Song, Session } from '../types'
 import { BottomSheet } from './BottomSheet'
 import { Spinner } from './Spinner'
 import { PROXY_URL, proxyHeaders } from '../hooks/useSongs'
 import styles from './InfoPanel.module.css'
 import cardStyles from './SongCard.module.css'
 
-type AuthTab = 'nouveautes' | 'favoris' | 'file' | 'demande'
+type AuthTab = 'top5' | 'reglement'
 
 interface Props {
   session: Session | null
   onClose: () => void
   onAuthError: () => void
   onOpenLogin: () => void
-  nouveautes: Song[]
   favSongs: Song[]
   onToggleFav: (id: number) => void
-  queue: QueueEntry[]
-  entryStatus: Record<number, 'idle' | 'loading' | 'error'>
-  isLoadingQueue: boolean
-  onReloadQueue: () => void
   isInQueue: (id: number) => boolean
   onAddToQueue: (song: Song) => void
-  onRemoveFromQueue: (entry: QueueEntry) => void
-  onMoveInQueue: (entry: QueueEntry, dir: 'up' | 'down') => void
   songStatus: Record<number, 'loading' | 'error' | 'idle'>
   onPreview: (song: Song) => void
   previewSongId?: number
@@ -85,40 +78,33 @@ function SongRow({
 
 export function InfoPanel({
   session, onClose, onAuthError, onOpenLogin,
-  nouveautes, favSongs, onToggleFav,
-  queue, entryStatus, isLoadingQueue, onReloadQueue,
-  isInQueue, onAddToQueue, onRemoveFromQueue, onMoveInQueue,
+  favSongs, onToggleFav,
+  isInQueue, onAddToQueue,
   songStatus, onPreview, previewSongId, previewStatus,
 }: Props) {
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 640
-  const [authTab, setAuthTab] = useState<AuthTab>('nouveautes')
-  const [requestValue, setRequestValue] = useState('')
-  const [requestState, setRequestState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
-  const [requestError, setRequestError] = useState('')
+  const [authTab, setAuthTab] = useState<AuthTab>('top5')
+  const [top5, setTop5] = useState<Song[]>([])
+  const [top5Loading, setTop5Loading] = useState(false)
 
-  async function handleSendRequest() {
-    if (!session || !requestValue.trim()) return
-    setRequestState('loading')
-    setRequestError('')
-    try {
-      const res = await fetch(`${PROXY_URL}/songrequest`, {
-        method: 'POST',
-        headers: proxyHeaders,
-        body: JSON.stringify({ token: session.token, value: requestValue.trim() }),
+  useEffect(() => {
+    if (!session || authTab !== 'top5') return
+    setTop5Loading(true)
+    fetch(`${PROXY_URL}/top`, {
+      method: 'POST',
+      headers: proxyHeaders,
+      body: JSON.stringify({ token: session.token }),
+    })
+      .then(r => {
+        if (r.status === 401) { onAuthError(); return null }
+        return r.json()
       })
-      if (res.status === 401) { onAuthError(); return }
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: `Erreur ${res.status}` }))
-        throw new Error(err.error ?? `Erreur ${res.status}`)
-      }
-      setRequestState('success')
-      setRequestValue('')
-      setTimeout(() => setRequestState('idle'), 4000)
-    } catch (e) {
-      setRequestState('error')
-      setRequestError((e as Error).message)
-    }
-  }
+      .then(data => {
+        if (data) setTop5(data.songs ?? data ?? [])
+      })
+      .catch(() => {})
+      .finally(() => setTop5Loading(false))
+  }, [session, authTab]) // eslint-disable-line
 
   /* ── Vue non connectée ── */
   const publicContent = (
@@ -155,10 +141,7 @@ export function InfoPanel({
           Les équipes s'apprêtent à s'affronter dans une série de battles de Blind-Test où chacun devra mettre en avant sa culture musicale pour gagner un maximum de points. Attention, il faudra se montrer réactif pour remporter la mise ! Une épreuve explosive dont le duo Auguste et Kevin est à l'origine.
         </p>
         <p className={styles.blindTestText}>
-          Plusieurs séries de Blind-Test thématisés sont proposées au choix des opposants parmi un éventail de registres très variés. Les titres ont été minutieusement sélectionnés pour offrir une véritable anthologie musicale qui transportera le public dans un tourbillon de chansons que chacun reprendra en chœur.
-        </p>
-        <p className={styles.blindTestText}>
-          L'animation Blind-Test est particulièrement interactive et facile d'accès, garantissant la participation du plus grand nombre. Partenaire de vos événements d'entreprise, la société E EVENTS NC anime vos séminaires, dîners de gala, cocktails, plénières et team building avec des activités conviviales et fédératrices. Ludique et festif, le blind-test se prête à de nombreuses occasions.
+          L'animation Blind-Test est particulièrement interactive et facile d'accès, garantissant la participation du plus grand nombre. Partenaire de vos événements d'entreprise, la société E EVENTS NC anime vos séminaires, dîners de gala, cocktails, plénières et team building avec des activités conviviales et fédératrices.
         </p>
         <p className={styles.blindTestContact}>
           📞 Infoline : <strong>79 70 84</strong> ou <strong>73 09 30</strong> — Auguste &amp; Kevin
@@ -183,12 +166,10 @@ export function InfoPanel({
     </div>
   )
 
-  /* ── Vue connectée ── */
+  /* ── Vue connectée : 2 onglets ── */
   const AUTH_TABS: { key: AuthTab; label: string }[] = [
-    { key: 'nouveautes', label: '✨ Nouveautés' },
-    { key: 'favoris', label: '♥ Favoris' },
-    { key: 'file', label: '🎙 File' },
-    { key: 'demande', label: '📝 Demande' },
+    { key: 'top5', label: '🏆 Top 5' },
+    { key: 'reglement', label: '� Règlement' },
   ]
 
   const authContent = (
@@ -201,128 +182,68 @@ export function InfoPanel({
             onClick={() => setAuthTab(t.key)}
           >
             {t.label}
-            {t.key === 'nouveautes' && nouveautes.length > 0 && <span className={styles.tabBadge}>{nouveautes.length}</span>}
-            {t.key === 'favoris' && favSongs.length > 0 && <span className={styles.tabBadge}>{favSongs.length}</span>}
-            {t.key === 'file' && queue.length > 0 && <span className={styles.tabBadge}>{queue.length}</span>}
           </button>
         ))}
       </div>
 
       <div className={styles.authTabContent}>
-        {authTab === 'nouveautes' && (
-          nouveautes.length === 0 ? (
+        {authTab === 'top5' && (
+          top5Loading ? (
+            <div className={styles.emptyState}><Spinner size={20} /></div>
+          ) : top5.length === 0 ? (
             <div className={styles.emptyState}>
-              <div className={styles.emptyIcon}>✨</div>
-              <p>Aucune nouveauté depuis la dernière synchro</p>
+              <div className={styles.emptyIcon}>🏆</div>
+              <p>Aucune donnée disponible</p>
             </div>
           ) : (
             <div className={styles.songList}>
-              {nouveautes.map(s => (
-                <SongRow key={s.id} song={s}
-                  isFav={favSongs.some(f => f.id === s.id)}
-                  inQueue={isInQueue(s.id)}
-                  queueLoading={songStatus[s.id] === 'loading'}
-                  isPreviewSong={previewSongId === s.id}
-                  previewStatus={previewSongId === s.id ? previewStatus : undefined}
-                  onToggleFav={() => onToggleFav(s.id)}
-                  onAddToQueue={() => onAddToQueue(s)}
-                  onPreview={() => onPreview(s)}
-                />
+              {top5.map((s, i) => (
+                <div key={s.id} className={styles.top5Row}>
+                  <span className={styles.top5Rank}>#{i + 1}</span>
+                  <SongRow
+                    song={s}
+                    isFav={favSongs.some(f => f.id === s.id)}
+                    inQueue={isInQueue(s.id)}
+                    queueLoading={songStatus[s.id] === 'loading'}
+                    isPreviewSong={previewSongId === s.id}
+                    previewStatus={previewSongId === s.id ? previewStatus : undefined}
+                    onToggleFav={() => onToggleFav(s.id)}
+                    onAddToQueue={() => onAddToQueue(s)}
+                    onPreview={() => onPreview(s)}
+                  />
+                </div>
               ))}
             </div>
           )
         )}
 
-        {authTab === 'favoris' && (
-          favSongs.length === 0 ? (
-            <div className={styles.emptyState}>
-              <div className={styles.emptyIcon}>♡</div>
-              <p>Clique sur ♡ pour ajouter des chansons à ta liste</p>
-            </div>
-          ) : (
-            <div className={styles.songList}>
-              {favSongs.map(s => (
-                <SongRow key={s.id} song={s}
-                  isFav={true}
-                  inQueue={isInQueue(s.id)}
-                  queueLoading={songStatus[s.id] === 'loading'}
-                  isPreviewSong={previewSongId === s.id}
-                  previewStatus={previewSongId === s.id ? previewStatus : undefined}
-                  onToggleFav={() => onToggleFav(s.id)}
-                  onAddToQueue={() => onAddToQueue(s)}
-                  onPreview={() => onPreview(s)}
-                />
-              ))}
-            </div>
-          )
-        )}
-
-        {authTab === 'file' && (
-          <>
-            <div className={styles.fileHeader}>
-              <span className={styles.fileTitle}>{queue.length} chanson{queue.length > 1 ? 's' : ''} en attente</span>
-              <button
-                className={`${styles.reloadBtn} ${isLoadingQueue ? styles.reloading : ''}`}
-                onClick={onReloadQueue}
-                disabled={isLoadingQueue}
-                title="Recharger"
-              >
-                {isLoadingQueue ? <Spinner size={12} /> : '⟳'}
-              </button>
-            </div>
-            {queue.length === 0 ? (
-              <div className={styles.emptyState}>
-                <div className={styles.emptyIcon}>🎙</div>
-                <p>La file est vide</p>
+        {authTab === 'reglement' && (
+          <div className={styles.reglementView}>
+            <div className={styles.infoSection}>
+              <div className={styles.infoSectionHeader}>
+                <span className={styles.infoSectionEmoji}>🎤</span>
+                <h3 className={styles.infoSectionTitle}>Karaoké Live</h3>
               </div>
-            ) : (
-              <div className={styles.queueList}>
-                {queue.map((entry, i) => {
-                  const st = entryStatus[entry.karaokeId ?? -1]
-                  return (
-                    <div key={entry.karaokeId ?? i} className={styles.queueEntry}>
-                      <div className={styles.queuePos}>{i + 1}</div>
-                      <div className={styles.queueInfo}>
-                        <div className={styles.songTitle}>{entry.song.title}</div>
-                        <div className={styles.songArtist}>{entry.song.artist}</div>
-                      </div>
-                      <div className={styles.queueActions}>
-                        <button className={styles.moveBtn} onClick={() => onMoveInQueue(entry, 'up')} disabled={i === 0 || st === 'loading'} title="Remonter">▲</button>
-                        <button className={styles.moveBtn} onClick={() => onMoveInQueue(entry, 'down')} disabled={i === queue.length - 1 || st === 'loading'} title="Descendre">▼</button>
-                        <button className={styles.removeBtn} onClick={() => onRemoveFromQueue(entry)} disabled={st === 'loading'} title="Retirer">
-                          {st === 'loading' ? <Spinner size={10} /> : '✕'}
-                        </button>
-                      </div>
-                    </div>
-                  )
-                })}
+              <p className={styles.infoSectionIntro}>Pour le bon déroulement de nos soirées Karaoké…</p>
+              <ol className={styles.reglementList}>
+                {REGLEMENT_KARAOKE.map((r, i) => <li key={i}>{r}</li>)}
+              </ol>
+              <a href="https://www.eprodnc.com/soireekaraokelive" target="_blank" rel="noopener noreferrer" className={styles.moreLink}>
+                En savoir plus sur le Karaoké Live →
+              </a>
+            </div>
+            <div className={styles.infoSection}>
+              <div className={styles.infoSectionHeader}>
+                <span className={styles.infoSectionEmoji}>🎵</span>
+                <h3 className={styles.infoSectionTitle}>Quizz Musical</h3>
               </div>
-            )}
-          </>
-        )}
-
-        {authTab === 'demande' && (
-          <div className={styles.demandeView}>
-            <p className={styles.demandeInfo}>
-              Tu ne trouves pas ta chanson dans le catalogue ? Envoie une demande à l'animateur pour qu'il puisse l'ajouter lors d'une prochaine soirée.
-            </p>
-            <textarea
-              className={styles.requestInput}
-              placeholder="Ex: Stromae – Alors on danse"
-              value={requestValue}
-              onChange={e => setRequestValue(e.target.value)}
-              rows={3}
-              disabled={requestState === 'loading' || requestState === 'success'}
-            />
-            {requestState === 'error' && <p className={styles.requestError}>❌ {requestError}</p>}
-            {requestState === 'success' && <p className={styles.requestSuccess}>✅ Demande envoyée !</p>}
-            <button
-              className={styles.sendBtn}
-              onClick={handleSendRequest}
-              disabled={!requestValue.trim() || requestState === 'loading' || requestState === 'success'}
-            >
-              {requestState === 'loading' ? <Spinner size={14} /> : '📩 Envoyer la demande'}
-            </button>
+              <p className={styles.blindTestContact}>
+                📞 Infoline : <strong>79 70 84</strong> ou <strong>73 09 30</strong> — Auguste &amp; Kevin
+              </p>
+              <a href="https://www.eprodnc.com/quizzteampro" target="_blank" rel="noopener noreferrer" className={styles.moreLink}>
+                En savoir plus sur le Quizz Team Pro →
+              </a>
+            </div>
           </div>
         )}
       </div>

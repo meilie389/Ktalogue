@@ -91,3 +91,112 @@
     font-weight: 600;
   }
 }
+
+/* ── Main tabs ── */
+.mainTabBar {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  flex-shrink: 0;
+}
+
+.mainTabBtn {
+  flex: 1;
+  padding: 11px 8px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: none;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+.mainTabBtn:hover { color: var(--text); }
+.mainTabActive {
+  color: var(--accent2);
+  border-bottom-color: var(--accent2);
+  font-weight: 700;
+}
+
+.tabPane {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── Demandes tab ── */
+.demandesPane {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 16px;
+  max-width: 600px;
+  margin: 0 auto;
+  width: 100%;
+}
+.demandesTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.demandesDesc {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+.demandesForm {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+.demandesInput {
+  resize: vertical;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface2);
+  color: var(--text);
+  font-size: 14px;
+  font-family: var(--font-body);
+}
+.demandesInput:focus { outline: none; border-color: var(--accent2); }
+.demandesSendBtn {
+  align-self: flex-start;
+  padding: 9px 20px;
+  background: var(--accent2);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.demandesSendBtn:hover { opacity: 0.85; }
+.demandesSendBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+.demandesSuccess { color: var(--green); font-size: 13px; }
+.demandesError { color: #e53e3e; font-size: 13px; }
+.demandesList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.demandesListTitle {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+}
+.demandesItem {
+  padding: 10px 14px;
+  background: var(--surface2);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text);
+}
