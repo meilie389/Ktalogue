@@ -111,7 +111,7 @@
   transition: background 0.12s;
 }
 .item:hover { background: var(--surface2); }
-.itemPlaying { background: rgba(124, 58, 237, 0.05) !important; }
+.itemPlaying { background: rgba(var(--accent-rgb), 0.05) !important; }
 
 .itemInfo { flex: 1; min-width: 0; }
 

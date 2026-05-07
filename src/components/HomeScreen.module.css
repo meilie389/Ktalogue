@@ -1,15 +1,153 @@
+/* ── Root ── */
 .root {
   flex: 1;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 32px;
-  padding: 32px 24px;
   background: var(--bg);
+  padding: 0 0 48px;
 }
 
+/* ── Hero ── */
 .hero {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 40px 24px 32px;
+  text-align: center;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.heroEmoji { font-size: 48px; line-height: 1; }
+
+.heroTitle {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+  letter-spacing: -0.5px;
+}
+
+.heroSub {
+  font-size: 14px;
+  color: var(--text2);
+  max-width: 340px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.heroLink {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+  border: 1.5px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 8px 18px;
+  transition: background 0.15s, color 0.15s;
+}
+.heroLink:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* ── Sections container ── */
+.sections {
+  width: 100%;
+  max-width: 680px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0 16px;
+  margin-top: 24px;
+}
+
+/* ── Section card ── */
+.section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sectionEmoji { font-size: 20px; }
+
+.sectionTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+.sectionIntro {
+  font-size: 13px;
+  color: var(--text2);
+  font-style: italic;
+  margin: 0;
+}
+
+.sectionText {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.65;
+  margin: 0;
+}
+
+.rulesList {
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 0;
+}
+.rulesList li {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.contactBox {
+  background: var(--surface2);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--text2);
+}
+
+.moreLink {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+}
+.moreLink:hover { text-decoration: underline; }
+
+/* ── Login card ── */
+.loginCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px 24px;
+  margin-bottom: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -17,52 +155,19 @@
   text-align: center;
 }
 
-.logo {
-  font-family: var(--font-display);
-  font-size: 48px;
-  font-weight: 700;
-  background: linear-gradient(90deg, var(--accent), var(--accent2));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  line-height: 1.1;
-}
+.loginIcon { font-size: 32px; opacity: 0.7; }
 
-.tagline {
-  font-size: 15px;
-  color: var(--text2);
-  max-width: 320px;
-  line-height: 1.6;
-}
-
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 32px 28px;
-  width: 100%;
-  max-width: 360px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-  box-shadow: 0 4px 24px rgba(124, 58, 237, 0.07);
-}
-
-.lockIcon {
-  font-size: 36px;
-  opacity: 0.5;
-}
-
-.cardText {
-  text-align: center;
-  font-size: 14px;
+.loginText {
+  font-size: 13px;
   color: var(--text2);
   line-height: 1.6;
+  max-width: 300px;
+  margin: 0;
 }
 
 .loginBtn {
   width: 100%;
+  max-width: 240px;
   background: linear-gradient(135deg, var(--accent), var(--accent2));
   border: none;
   border-radius: var(--radius);
@@ -71,19 +176,22 @@
   font-weight: 600;
   color: white;
   cursor: pointer;
-  transition: opacity 0.18s;
+  transition: opacity 0.15s;
   font-family: var(--font-body);
 }
 .loginBtn:hover { opacity: 0.88; }
 
-.hint {
-  font-size: 12px;
+.loginHint {
+  font-size: 11px;
   color: var(--muted);
-  text-align: center;
+  margin: 0;
 }
 
+/* ── Mobile ── */
 @media (max-width: 640px) {
-  .logo { font-size: 40px; }
-  .card { padding: 28px 20px; }
+  .hero { padding: 32px 20px 28px; }
+  .heroTitle { font-size: 26px; }
+  .sections { padding: 0 12px; margin-top: 16px; }
+  .section { padding: 16px; }
   .loginBtn { font-size: 16px; padding: 14px; }
 }

@@ -152,7 +152,13 @@ export function InfoPanel({
           <h3 className={styles.infoSectionTitle}>Quizz Musical — Blind Test</h3>
         </div>
         <p className={styles.blindTestText}>
-          Les équipes s'affrontent dans une série de battles de Blind-Test où chacun doit mettre en avant sa culture musicale pour gagner un maximum de points. Plusieurs séries thématisées parmi un éventail de registres très variés — une véritable anthologie musicale ! Ludique, festif et particulièrement interactif, le blind-test garantit la participation du plus grand nombre.
+          Les équipes s'apprêtent à s'affronter dans une série de battles de Blind-Test où chacun devra mettre en avant sa culture musicale pour gagner un maximum de points. Attention, il faudra se montrer réactif pour remporter la mise ! Une épreuve explosive dont le duo Auguste et Kevin est à l'origine.
+        </p>
+        <p className={styles.blindTestText}>
+          Plusieurs séries de Blind-Test thématisés sont proposées au choix des opposants parmi un éventail de registres très variés. Les titres ont été minutieusement sélectionnés pour offrir une véritable anthologie musicale qui transportera le public dans un tourbillon de chansons que chacun reprendra en chœur.
+        </p>
+        <p className={styles.blindTestText}>
+          L'animation Blind-Test est particulièrement interactive et facile d'accès, garantissant la participation du plus grand nombre. Partenaire de vos événements d'entreprise, la société E EVENTS NC anime vos séminaires, dîners de gala, cocktails, plénières et team building avec des activités conviviales et fédératrices. Ludique et festif, le blind-test se prête à de nombreuses occasions.
         </p>
         <p className={styles.blindTestContact}>
           📞 Infoline : <strong>79 70 84</strong> ou <strong>73 09 30</strong> — Auguste &amp; Kevin

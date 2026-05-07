@@ -63,7 +63,7 @@
   gap: 6px;
   padding: 24px 20px 20px;
   text-align: center;
-  background: linear-gradient(135deg, rgba(124, 58, 237, 0.08), rgba(124, 58, 237, 0.02));
+  background: var(--surface2);
   border-bottom: 1px solid var(--border);
 }
 
@@ -91,12 +91,12 @@
   font-weight: 600;
   color: var(--accent);
   text-decoration: none;
-  border: 1px solid rgba(124, 58, 237, 0.3);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 5px 12px;
   transition: background 0.15s;
 }
-.heroLink:hover { background: rgba(124, 58, 237, 0.07); }
+.heroLink:hover { background: var(--surface3); }
 
 /* Info sections */
 .infoSection {
@@ -188,7 +188,7 @@
 .loginCardBtn {
   width: 100%;
   max-width: 220px;
-  background: linear-gradient(135deg, var(--accent), #6d28d9);
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
   border: none;
   border-radius: var(--radius);
   padding: 11px 20px;
@@ -434,7 +434,7 @@
 .requestInput:disabled { opacity: 0.6; }
 
 .sendBtn {
-  background: linear-gradient(135deg, var(--accent), #6d28d9);
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
   border: none;
   border-radius: var(--radius);
   padding: 11px 16px;

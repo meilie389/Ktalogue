@@ -1,20 +1,20 @@
-/* ── Thème clair (E PROD NC — day) ── */
 :root,
 [data-theme="light"] {
-  --bg: #f3f0ff;
+  --bg: #f4f8ff;
   --surface: #ffffff;
-  --surface2: #ebe6fa;
-  --surface3: #ddd6f5;
-  --border: #c8bfe8;
-  --accent: #50046c;      /* violet e-events */
-  --accent2: #fa9215;     /* orange e-events */
-  --accent3: #2b5699;     /* bleu e-events */
+  --surface2: #e8eeff;
+  --surface3: #d5e2ff;
+  --border: #b8ccf5;
+  --accent: #040dda;
+  --accent-rgb: 4, 13, 218;       /* pour rgba() */
+  --accent2: #fa9215;
+  --accent3: #33b0fb;
   --gold: #fa9215;
   --green: #198754;
-  --text: #000036;        /* bleu marine très sombre */
-  --text2: #1a0c4e;
-  --muted: #7a5090;
-  --fav: #991d8a;         /* magenta e-events */
+  --text: #000036;
+  --text2: #010458;
+  --muted: #2b5699;
+  --fav: #ff14af;
   --duo: #2b5699;
   --new: #198754;
   --radius: 10px;
@@ -24,21 +24,21 @@
   --font-body: 'DM Sans', sans-serif;
 }
 
-/* ── Thème sombre (E PROD NC — night) ── */
 [data-theme="dark"] {
-  --bg: #000036;          /* bleu nuit e-events */
-  --surface: #010458;     /* bleu profond */
-  --surface2: #07108a;
-  --surface3: #0e1ba0;
-  --border: #1e2ab8;
-  --accent: #ff14af;      /* rose/magenta signature */
-  --accent2: #fa9215;     /* orange */
-  --accent3: #33b0fb;     /* bleu ciel */
+  --bg: #000036;
+  --surface: #010458;
+  --surface2: #06108a;
+  --surface3: #0c1aaa;
+  --border: #1525c0;
+  --accent: #ff14af;
+  --accent-rgb: 255, 20, 175;     /* pour rgba() */
+  --accent2: #fa9215;
+  --accent3: #33b0fb;
   --gold: #fa9215;
   --green: #198754;
   --text: #ffffff;
-  --text2: #b0c4f8;
-  --muted: #6878c8;
+  --text2: #99b8ff;
+  --muted: #5878cc;
   --fav: #ff14af;
   --duo: #33b0fb;
   --new: #198754;

@@ -138,13 +138,15 @@ export function Header({
             {queueCount > 0 && <span className={styles.queueBadge}>{queueCount}</span>}
           </button>
 
-          <button
-            className={`${styles.infoBtn} ${infoPanelOpen ? styles.infoBtnOpen : ''}`}
-            onClick={onToggleInfoPanel}
-            title="Infos soirée"
-          >
-            ℹ️<span className={styles.btnLabel}> Infos</span>
-          </button>
+          {userEmail && (
+            <button
+              className={`${styles.infoBtn} ${infoPanelOpen ? styles.infoBtnOpen : ''}`}
+              onClick={onToggleInfoPanel}
+              title="Infos soirée"
+            >
+              ℹ️<span className={styles.btnLabel}> Infos</span>
+            </button>
+          )}
 
           <button
             className={styles.themeBtn}

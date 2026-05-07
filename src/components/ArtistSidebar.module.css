@@ -40,7 +40,7 @@
 .item:hover { background: var(--surface2); }
 
 .active {
-  background: rgba(124, 58, 237, 0.1) !important;
+  background: rgba(var(--accent-rgb), 0.1) !important;
   color: var(--accent);
 }
 

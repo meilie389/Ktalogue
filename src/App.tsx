@@ -12,6 +12,7 @@ import { QueuePanel } from './components/QueuePanel'
 import { LoginModal } from './components/LoginModal'
 import { RefreshModal } from './components/RefreshModal'
 import { InfoPanel } from './components/InfoPanel'
+import { HomeScreen } from './components/HomeScreen'
 import { usePreview } from './hooks/usePreview'
 import { MiniPlayer } from './components/MiniPlayer'
 import { saveSession, loadSession, clearSession } from './utils/session'
@@ -173,143 +174,150 @@ export default function App() {
         onToggleInfoPanel={() => setInfoPanelOpen(v => !v)}
       />
 
-      <button
-        className={styles.artistMobileBtn}
-        onClick={() => setArtistDrawerOpen(true)}
-        aria-label="Choisir un artiste"
-      >
-        <span>🎤</span>
-        <span className={styles.artistMobileBtnLabel}>{activeArtist ?? 'Tous les artistes'}</span>
-        <span>▾</span>
-      </button>
+      {/* ── Non connecté : page d'accueil e-events ── */}
+      {!credentials && (
+        <HomeScreen onLogin={() => setLoginModalOpen(true)} />
+      )}
 
-      <div className={styles.body}>
-        <ArtistSidebar
-          artists={artists}
-          total={allSongs.length}
-          activeArtist={activeArtist}
-          onSelect={handleSelectArtist}
-          drawerOpen={artistDrawerOpen}
-          onDrawerClose={() => setArtistDrawerOpen(false)}
-        />
+      {/* ── Connecté : catalogue + panels ── */}
+      {credentials && (
+        <>
+          <button
+            className={styles.artistMobileBtn}
+            onClick={() => setArtistDrawerOpen(true)}
+            aria-label="Choisir un artiste"
+          >
+            <span>🎤</span>
+            <span className={styles.artistMobileBtnLabel}>{activeArtist ?? 'Tous les artistes'}</span>
+            <span>▾</span>
+          </button>
 
-        <main className={styles.catalog} style={previewTrack ? { paddingBottom: 88 } : undefined}>
-          <div className={styles.resultsInfo}>
-            <b>{filtered.length.toLocaleString('fr')}</b>
-            {' '}titre{filtered.length > 1 ? 's' : ''} affiché{filtered.length > 1 ? 's' : ''}
-          </div>
+          <div className={styles.body}>
+            <ArtistSidebar
+              artists={artists}
+              total={allSongs.length}
+              activeArtist={activeArtist}
+              onSelect={handleSelectArtist}
+              drawerOpen={artistDrawerOpen}
+              onDrawerClose={() => setArtistDrawerOpen(false)}
+            />
 
-          <div className={styles.grid}>
-            {visible.map(song => (
-              <SongCard
-                key={song.id}
-                song={song}
-                isFav={favIds.has(song.id)}
-                onToggleFav={toggleFav}
+            <main className={styles.catalog} style={previewTrack ? { paddingBottom: 88 } : undefined}>
+              <div className={styles.resultsInfo}>
+                <b>{filtered.length.toLocaleString('fr')}</b>
+                {' '}titre{filtered.length > 1 ? 's' : ''} affiché{filtered.length > 1 ? 's' : ''}
+              </div>
+
+              <div className={styles.grid}>
+                {visible.map(song => (
+                  <SongCard
+                    key={song.id}
+                    song={song}
+                    isFav={favIds.has(song.id)}
+                    onToggleFav={toggleFav}
+                    onAddToQueue={async (s) => {
+                      try { await addToQueue(s) } catch { /* affiché via songStatus */ }
+                    }}
+                    queueStatus={
+                      isInQueue(song.id) ? 'queued'
+                      : songStatus[song.id] === 'loading' ? 'loading'
+                      : songStatus[song.id] === 'error' ? 'error'
+                      : undefined
+                    }
+                    onPreview={playPreview}
+                    previewStatus={
+                      previewTrack?.songId === song.id
+                        ? previewLoading ? 'loading' : previewPlaying ? 'playing' : 'idle'
+                        : undefined
+                    }
+                  />
+                ))}
+              </div>
+
+              {filtered.length === 0 && (
+                <div className={styles.empty}>
+                  <div className={styles.emptyIcon}>🎤</div>
+                  <p>Aucune chanson trouvée</p>
+                  <button
+                    className={styles.resetBtn}
+                    onClick={() => { setFilters(DEFAULT_FILTERS); setActiveArtist(null) }}
+                  >
+                    Réinitialiser les filtres
+                  </button>
+                </div>
+              )}
+
+              <div ref={sentinelRef} style={{ height: 1 }} />
+            </main>
+
+            {favPanelOpen && (
+              <FavPanel
+                favSongs={favSongs}
+                onRemove={toggleFav}
+                onClear={clearFavs}
+                onExport={handleExportFavs}
+                onClose={() => setFavPanelOpen(false)}
+                onPreview={playPreview}
                 onAddToQueue={async (s) => {
-                  if (!credentials) { setLoginModalOpen(true); return }
                   try { await addToQueue(s) } catch { /* affiché via songStatus */ }
                 }}
-                queueStatus={
-                  isInQueue(song.id) ? 'queued'
-                  : songStatus[song.id] === 'loading' ? 'loading'
-                  : songStatus[song.id] === 'error' ? 'error'
-                  : undefined
-                }
-                onPreview={playPreview}
+                isInQueue={isInQueue}
+                songStatus={songStatus}
+                previewSongId={previewTrack?.songId}
                 previewStatus={
-                  previewTrack?.songId === song.id
+                  previewTrack
                     ? previewLoading ? 'loading' : previewPlaying ? 'playing' : 'idle'
                     : undefined
                 }
               />
-            ))}
+            )}
+
+            {queuePanelOpen && (
+              <QueuePanel
+                queue={queue}
+                entryStatus={entryStatus}
+                hasCredentials={true}
+                isLoadingQueue={isLoadingQueue}
+                onReload={() => fetchQueue(allSongs)}
+                onRemove={removeFromQueue}
+                onMove={moveInQueue}
+                onClose={() => setQueuePanelOpen(false)}
+                onNeedLogin={() => setLoginModalOpen(true)}
+              />
+            )}
+
+            {infoPanelOpen && (
+              <InfoPanel
+                session={credentials}
+                onClose={() => setInfoPanelOpen(false)}
+                onAuthError={handleAuthError}
+                onOpenLogin={() => setLoginModalOpen(true)}
+                nouveautes={nouveautes}
+                favSongs={favSongs}
+                onToggleFav={toggleFav}
+                queue={queue}
+                entryStatus={entryStatus}
+                isLoadingQueue={isLoadingQueue}
+                onReloadQueue={() => fetchQueue(allSongs)}
+                isInQueue={isInQueue}
+                onAddToQueue={async (s) => {
+                  try { await addToQueue(s) } catch { /* affiché via songStatus */ }
+                }}
+                onRemoveFromQueue={removeFromQueue}
+                onMoveInQueue={moveInQueue}
+                songStatus={songStatus}
+                onPreview={playPreview}
+                previewSongId={previewTrack?.songId}
+                previewStatus={
+                  previewTrack
+                    ? previewLoading ? 'loading' : previewPlaying ? 'playing' : 'idle'
+                    : undefined
+                }
+              />
+            )}
           </div>
-
-          {filtered.length === 0 && (
-            <div className={styles.empty}>
-              <div className={styles.emptyIcon}>🎤</div>
-              <p>Aucune chanson trouvée</p>
-              <button
-                className={styles.resetBtn}
-                onClick={() => { setFilters(DEFAULT_FILTERS); setActiveArtist(null) }}
-              >
-                Réinitialiser les filtres
-              </button>
-            </div>
-          )}
-
-          <div ref={sentinelRef} style={{ height: 1 }} />
-        </main>
-
-        {favPanelOpen && (
-          <FavPanel
-            favSongs={favSongs}
-            onRemove={toggleFav}
-            onClear={clearFavs}
-            onExport={handleExportFavs}
-            onClose={() => setFavPanelOpen(false)}
-            onPreview={playPreview}
-            onAddToQueue={async (s) => {
-              if (!credentials) { setLoginModalOpen(true); return }
-              try { await addToQueue(s) } catch { /* affiché via songStatus */ }
-            }}
-            isInQueue={isInQueue}
-            songStatus={songStatus}
-            previewSongId={previewTrack?.songId}
-            previewStatus={
-              previewTrack
-                ? previewLoading ? 'loading' : previewPlaying ? 'playing' : 'idle'
-                : undefined
-            }
-          />
-        )}
-
-        {queuePanelOpen && (
-          <QueuePanel
-            queue={queue}
-            entryStatus={entryStatus}
-            hasCredentials={!!credentials}
-            isLoadingQueue={isLoadingQueue}
-            onReload={() => fetchQueue(allSongs)}
-            onRemove={removeFromQueue}
-            onMove={moveInQueue}
-            onClose={() => setQueuePanelOpen(false)}
-            onNeedLogin={() => { setQueuePanelOpen(false); setLoginModalOpen(true) }}
-          />
-        )}
-
-        {infoPanelOpen && (
-          <InfoPanel
-            session={credentials}
-            onClose={() => setInfoPanelOpen(false)}
-            onAuthError={handleAuthError}
-            onOpenLogin={() => { setInfoPanelOpen(false); setLoginModalOpen(true) }}
-            nouveautes={nouveautes}
-            favSongs={favSongs}
-            onToggleFav={toggleFav}
-            queue={queue}
-            entryStatus={entryStatus}
-            isLoadingQueue={isLoadingQueue}
-            onReloadQueue={() => fetchQueue(allSongs)}
-            isInQueue={isInQueue}
-            onAddToQueue={async (s) => {
-              if (!credentials) { setInfoPanelOpen(false); setLoginModalOpen(true); return }
-              try { await addToQueue(s) } catch { /* affiché via songStatus */ }
-            }}
-            onRemoveFromQueue={removeFromQueue}
-            onMoveInQueue={moveInQueue}
-            songStatus={songStatus}
-            onPreview={playPreview}
-            previewSongId={previewTrack?.songId}
-            previewStatus={
-              previewTrack
-                ? previewLoading ? 'loading' : previewPlaying ? 'playing' : 'idle'
-                : undefined
-            }
-          />
-        )}
-      </div>
+        </>
+      )}
 
       {previewTrack && (
         <MiniPlayer
