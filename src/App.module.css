@@ -11,6 +11,13 @@
   overflow: hidden;
 }
 
+.mainContent {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
 .catalog {
   flex: 1;
   overflow-y: auto;
@@ -199,4 +206,16 @@
   border: 1px solid var(--border);
   font-size: 13px;
   color: var(--text);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.demandesItemDate {
+  font-size: 11px;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  white-space: nowrap;
+  flex-shrink: 0;
 }

@@ -7,16 +7,13 @@ interface Props {
   total: number
   filtered: number
   totalNew: number
-  favCount: number
   filters: Filters
   langs: string[]
-  favPanelOpen: boolean
   queueCount: number
   queuePanelOpen: boolean
   userEmail: string | null
   theme: Theme
   onFiltersChange: (f: Partial<Filters>) => void
-  onToggleFavPanel: () => void
   onToggleQueuePanel: () => void
   onOpenRefresh: () => void
   onOpenLogin: () => void
@@ -29,9 +26,9 @@ interface Props {
 }
 
 export function Header({
-  total, filtered, totalNew, favCount, filters, langs,
-  favPanelOpen, queueCount, queuePanelOpen, userEmail, theme,
-  onFiltersChange, onToggleFavPanel, onToggleQueuePanel,
+  total, filtered, totalNew, filters, langs,
+  queueCount, queuePanelOpen, userEmail, theme,
+  onFiltersChange, onToggleQueuePanel,
   onOpenRefresh, onOpenLogin, onLogout, onReset, onExportCatalog,
   onToggleTheme, infoPanelOpen, onToggleInfoPanel,
 }: Props) {
@@ -130,18 +127,6 @@ export function Header({
           ) : (
             <button className={styles.loginBtn} onClick={onOpenLogin}>
               🔑 <span className={styles.btnLabel}>Se connecter</span>
-            </button>
-          )}
-
-          {/* Ma liste — connecté seulement */}
-          {userEmail && (
-            <button
-              className={`${styles.favPanelBtn} ${favPanelOpen ? styles.favPanelOpen : ''} ${favCount > 0 ? styles.hasFavs : ''}`}
-              onClick={onToggleFavPanel}
-              title="Mes favoris"
-            >
-              ♥<span className={styles.btnLabel}> Ma liste</span>
-              {favCount > 0 && <span className={styles.favBadge}>{favCount}</span>}
             </button>
           )}
 

@@ -38,8 +38,7 @@ export default function App() {
 
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS)
   const [activeArtist, setActiveArtist] = useState<string | null>(null)
-  const [mainTab, setMainTab] = useState<'catalogue' | 'maListe' | 'demandes'>('catalogue')
-  const [favPanelOpen, setFavPanelOpen] = useState(false)
+  const [mainTab, setMainTab] = useState<'catalogue' | 'favoris' | 'demandes'>('catalogue')
   const [queuePanelOpen, setQueuePanelOpen] = useState(false)
   const [infoPanelOpen, setInfoPanelOpen] = useState(false)
   const [loginModalOpen, setLoginModalOpen] = useState(false)
@@ -49,7 +48,8 @@ export default function App() {
   const [demandeValue, setDemandeValue] = useState('')
   const [demandeState, setDemandeState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [demandeError, setDemandeError] = useState('')
-  const [demandeHistory, setDemandeHistory] = useState<string[]>([])
+  const [demandeHistory, setDemandeHistory] = useState<{ value: string; createdAt: number }[]>([])
+  const [demandeHistoryLoading, setDemandeHistoryLoading] = useState(false)
 
   function handleAuthError() {
     setCredentials(null)
@@ -64,6 +64,26 @@ export default function App() {
   useEffect(() => {
     if (queuePanelOpen && credentials) fetchQueue(allSongs)
   }, [queuePanelOpen]) // eslint-disable-line
+
+  // Chargement des demandes depuis Deno KV à l'ouverture de l'onglet
+  useEffect(() => {
+    if (mainTab !== 'demandes' || !credentials) return
+    setDemandeHistoryLoading(true)
+    fetch(`${PROXY_URL}/myrequests`, {
+      method: 'POST',
+      headers: proxyHeaders,
+      body: JSON.stringify({ token: credentials.token }),
+    })
+      .then(r => {
+        if (r.status === 401) { handleAuthError(); return null }
+        return r.json()
+      })
+      .then(data => {
+        if (data?.requests) setDemandeHistory(data.requests)
+      })
+      .catch(() => {})
+      .finally(() => setDemandeHistoryLoading(false))
+  }, [mainTab, credentials?.token]) // eslint-disable-line
 
   function patchFilters(patch: Partial<Filters>) {
     setFilters(prev => ({ ...prev, ...patch }))
@@ -107,7 +127,6 @@ export default function App() {
   function handleReset() {
     setFilters(DEFAULT_FILTERS)
     setActiveArtist(null)
-    setFavPanelOpen(false)
   }
 
   async function handleLogin(email: string, password: string) {
@@ -155,7 +174,10 @@ export default function App() {
         const err = await res.json().catch(() => ({ error: `Erreur ${res.status}` }))
         throw new Error(err.error ?? `Erreur ${res.status}`)
       }
-      setDemandeHistory(prev => [demandeValue.trim(), ...prev])
+      setDemandeHistory(prev => {
+        const next = [{ value: demandeValue.trim(), createdAt: Date.now() }, ...prev]
+        return next
+      })
       setDemandeState('success')
       setDemandeValue('')
       setTimeout(() => setDemandeState('idle'), 4000)
@@ -171,19 +193,16 @@ export default function App() {
         total={allSongs.length}
         filtered={filtered.length}
         totalNew={totalNew}
-        favCount={favIds.size}
         filters={filters}
         langs={langs}
-        favPanelOpen={favPanelOpen}
         onFiltersChange={patchFilters}
-        onToggleFavPanel={() => { setFavPanelOpen(v => !v); setQueuePanelOpen(false); setInfoPanelOpen(false) }}
         onOpenRefresh={() => setSyncModalOpen(true)}
         onOpenLogin={() => setLoginModalOpen(true)}
         onLogout={handleLogout}
         onReset={handleReset}
         queueCount={queue.length}
         queuePanelOpen={queuePanelOpen}
-        onToggleQueuePanel={() => { setQueuePanelOpen(v => !v); setFavPanelOpen(false); setInfoPanelOpen(false) }}
+        onToggleQueuePanel={() => { setQueuePanelOpen(v => !v); setInfoPanelOpen(false) }}
         userEmail={credentials?.email ?? null}
         onExportCatalog={handleExportCatalog}
         theme={theme}
@@ -192,224 +211,214 @@ export default function App() {
         onToggleInfoPanel={() => setInfoPanelOpen(v => !v)}
       />
 
-      {/* ── Non connecté : page d'accueil e-events ── */}
+      {/* ── Non connecté ── */}
       {!credentials && (
         <HomeScreen onLogin={() => setLoginModalOpen(true)} />
       )}
 
-      {/* ── Connecté : 3 onglets principaux ── */}
+      {/* ── Connecté : layout principal avec panneaux latéraux ── */}
       {credentials && (
-        <>
-          {/* Barre d'onglets */}
-          <div className={styles.mainTabBar}>
-            <button
-              className={`${styles.mainTabBtn} ${mainTab === 'catalogue' ? styles.mainTabActive : ''}`}
-              onClick={() => setMainTab('catalogue')}
-            >
-              🎵 Catalogue
-            </button>
-            <button
-              className={`${styles.mainTabBtn} ${mainTab === 'maListe' ? styles.mainTabActive : ''}`}
-              onClick={() => setMainTab('maListe')}
-            >
-              ♥ Ma liste {favIds.size > 0 && `(${favIds.size})`}
-            </button>
-            <button
-              className={`${styles.mainTabBtn} ${mainTab === 'demandes' ? styles.mainTabActive : ''}`}
-              onClick={() => setMainTab('demandes')}
-            >
-              📝 Demandes
-            </button>
-          </div>
-
-          {/* ── Onglet Catalogue ── */}
-          {mainTab === 'catalogue' && (
-            <>
+        <div className={styles.body}>
+          {/* Contenu principal + tab bar */}
+          <div className={styles.mainContent}>
+            {/* Barre d'onglets */}
+            <div className={styles.mainTabBar}>
               <button
-                className={styles.artistMobileBtn}
-                onClick={() => setArtistDrawerOpen(true)}
-                aria-label="Choisir un artiste"
+                className={`${styles.mainTabBtn} ${mainTab === 'catalogue' ? styles.mainTabActive : ''}`}
+                onClick={() => setMainTab('catalogue')}
               >
-                <span>🎤</span>
-                <span className={styles.artistMobileBtnLabel}>{activeArtist ?? 'Tous les artistes'}</span>
-                <span>▾</span>
+                🎵 Catalogue
               </button>
-              <div className={styles.tabPane}>
-                <ArtistSidebar
-                  artists={artists}
-                  total={allSongs.length}
-                  activeArtist={activeArtist}
-                  onSelect={handleSelectArtist}
-                  drawerOpen={artistDrawerOpen}
-                  onDrawerClose={() => setArtistDrawerOpen(false)}
-                />
-                <main className={styles.catalog} style={previewTrack ? { paddingBottom: 88 } : undefined}>
-                  <div className={styles.resultsInfo}>
-                    <b>{filtered.length.toLocaleString('fr')}</b>
-                    {' '}titre{filtered.length > 1 ? 's' : ''} affiché{filtered.length > 1 ? 's' : ''}
-                  </div>
-                  <div className={styles.grid}>
-                    {visible.map(song => (
-                      <SongCard
-                        key={song.id}
-                        song={song}
-                        isFav={favIds.has(song.id)}
-                        onToggleFav={toggleFav}
-                        onAddToQueue={async (s) => {
-                          try { await addToQueue(s) } catch { /* affiché via songStatus */ }
-                        }}
-                        queueStatus={
-                          isInQueue(song.id) ? 'queued'
-                          : songStatus[song.id] === 'loading' ? 'loading'
-                          : songStatus[song.id] === 'error' ? 'error'
-                          : undefined
-                        }
-                        onPreview={playPreview}
-                        previewStatus={
-                          previewTrack?.songId === song.id
-                            ? previewLoading ? 'loading' : previewPlaying ? 'playing' : 'idle'
+              <button
+                className={`${styles.mainTabBtn} ${mainTab === 'favoris' ? styles.mainTabActive : ''}`}
+                onClick={() => setMainTab('favoris')}
+              >
+                ♥ Favoris{favIds.size > 0 ? ` (${favIds.size})` : ''}
+              </button>
+              <button
+                className={`${styles.mainTabBtn} ${mainTab === 'demandes' ? styles.mainTabActive : ''}`}
+                onClick={() => setMainTab('demandes')}
+              >
+                📝 Demandes
+              </button>
+            </div>
+
+            {/* ── Onglet Catalogue ── */}
+            {mainTab === 'catalogue' && (
+              <>
+                <button
+                  className={styles.artistMobileBtn}
+                  onClick={() => setArtistDrawerOpen(true)}
+                  aria-label="Choisir un artiste"
+                >
+                  <span>🎤</span>
+                  <span className={styles.artistMobileBtnLabel}>{activeArtist ?? 'Tous les artistes'}</span>
+                  <span>▾</span>
+                </button>
+                <div className={styles.tabPane}>
+                  <ArtistSidebar
+                    artists={artists}
+                    total={allSongs.length}
+                    activeArtist={activeArtist}
+                    onSelect={handleSelectArtist}
+                    drawerOpen={artistDrawerOpen}
+                    onDrawerClose={() => setArtistDrawerOpen(false)}
+                  />
+                  <main className={styles.catalog} style={previewTrack ? { paddingBottom: 88 } : undefined}>
+                    <div className={styles.resultsInfo}>
+                      <b>{filtered.length.toLocaleString('fr')}</b>
+                      {' '}titre{filtered.length > 1 ? 's' : ''} affiché{filtered.length > 1 ? 's' : ''}
+                    </div>
+                    <div className={styles.grid}>
+                      {visible.map(song => (
+                        <SongCard
+                          key={song.id}
+                          song={song}
+                          isFav={favIds.has(song.id)}
+                          onToggleFav={toggleFav}
+                          onAddToQueue={async (s) => {
+                            try { await addToQueue(s) } catch { /* affiché via songStatus */ }
+                          }}
+                          queueStatus={
+                            isInQueue(song.id) ? 'queued'
+                            : songStatus[song.id] === 'loading' ? 'loading'
+                            : songStatus[song.id] === 'error' ? 'error'
                             : undefined
-                        }
-                      />
+                          }
+                          onPreview={playPreview}
+                          previewStatus={
+                            previewTrack?.songId === song.id
+                              ? previewLoading ? 'loading' : previewPlaying ? 'playing' : 'idle'
+                              : undefined
+                          }
+                        />
+                      ))}
+                    </div>
+                    {filtered.length === 0 && (
+                      <div className={styles.empty}>
+                        <div className={styles.emptyIcon}>🎤</div>
+                        <p>Aucune chanson trouvée</p>
+                        <button
+                          className={styles.resetBtn}
+                          onClick={() => { setFilters(DEFAULT_FILTERS); setActiveArtist(null) }}
+                        >
+                          Réinitialiser les filtres
+                        </button>
+                      </div>
+                    )}
+                    <div ref={sentinelRef} style={{ height: 1 }} />
+                  </main>
+                </div>
+              </>
+            )}
+
+            {/* ── Onglet Favoris ── */}
+            {mainTab === 'favoris' && (
+              <div className={styles.tabPane} style={previewTrack ? { paddingBottom: 88 } : undefined}>
+                <FavPanel
+                  favSongs={favSongs}
+                  onRemove={toggleFav}
+                  onClear={clearFavs}
+                  onClose={() => setMainTab('catalogue')}
+                  onPreview={playPreview}
+                  onAddToQueue={async (s) => {
+                    try { await addToQueue(s) } catch { /* affiché via songStatus */ }
+                  }}
+                  isInQueue={isInQueue}
+                  songStatus={songStatus}
+                  previewSongId={previewTrack?.songId}
+                  previewStatus={
+                    previewTrack
+                      ? previewLoading ? 'loading' : previewPlaying ? 'playing' : 'idle'
+                      : undefined
+                  }
+                />
+              </div>
+            )}
+
+            {/* ── Onglet Demandes ── */}
+            {mainTab === 'demandes' && (
+              <div className={styles.demandesPane} style={previewTrack ? { paddingBottom: 88 } : undefined}>
+                <div className={styles.demandesTitle}>📝 Demande de chanson</div>
+                <p className={styles.demandesDesc}>
+                  Tu ne trouves pas ta chanson dans le catalogue ? Envoie une demande à l'animateur pour l'ajouter lors d'une prochaine soirée.
+                </p>
+                <div className={styles.demandesForm}>
+                  <textarea
+                    className={styles.demandesInput}
+                    placeholder="Ex: Stromae – Alors on danse"
+                    value={demandeValue}
+                    onChange={e => setDemandeValue(e.target.value)}
+                    rows={3}
+                    disabled={demandeState === 'loading' || demandeState === 'success'}
+                  />
+                  {demandeState === 'error' && <p className={styles.demandesError}>❌ {demandeError}</p>}
+                  {demandeState === 'success' && <p className={styles.demandesSuccess}>✅ Demande envoyée !</p>}
+                  <button
+                    className={styles.demandesSendBtn}
+                    onClick={handleSendDemande}
+                    disabled={!demandeValue.trim() || demandeState === 'loading' || demandeState === 'success'}
+                  >
+                    {demandeState === 'loading' ? <Spinner size={14} /> : '📩 Envoyer'}
+                  </button>
+                </div>
+                  {demandeHistory.length > 0 && (
+                  <div className={styles.demandesList}>
+                    <div className={styles.demandesListTitle}>
+                      Mes demandes{demandeHistoryLoading ? ' …' : ` (${demandeHistory.length})`}
+                    </div>
+                    {demandeHistory.map((d, i) => (
+                      <div key={i} className={styles.demandesItem}>
+                        <span>📌 {d.value}</span>
+                        <span className={styles.demandesItemDate}>
+                          {new Date(d.createdAt).toLocaleDateString('fr', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
                     ))}
                   </div>
-                  {filtered.length === 0 && (
-                    <div className={styles.empty}>
-                      <div className={styles.emptyIcon}>🎤</div>
-                      <p>Aucune chanson trouvée</p>
-                      <button
-                        className={styles.resetBtn}
-                        onClick={() => { setFilters(DEFAULT_FILTERS); setActiveArtist(null) }}
-                      >
-                        Réinitialiser les filtres
-                      </button>
-                    </div>
-                  )}
-                  <div ref={sentinelRef} style={{ height: 1 }} />
-                </main>
-
-                {favPanelOpen && (
-                  <FavPanel
-                    favSongs={favSongs}
-                    onRemove={toggleFav}
-                    onClear={clearFavs}
-                    onClose={() => setFavPanelOpen(false)}
-                    onPreview={playPreview}
-                    onAddToQueue={async (s) => {
-                      try { await addToQueue(s) } catch { /* affiché via songStatus */ }
-                    }}
-                    isInQueue={isInQueue}
-                    songStatus={songStatus}
-                    previewSongId={previewTrack?.songId}
-                    previewStatus={
-                      previewTrack
-                        ? previewLoading ? 'loading' : previewPlaying ? 'playing' : 'idle'
-                        : undefined
-                    }
-                  />
-                )}
-
-                {queuePanelOpen && (
-                  <QueuePanel
-                    queue={queue}
-                    entryStatus={entryStatus}
-                    hasCredentials={true}
-                    isLoadingQueue={isLoadingQueue}
-                    onReload={() => fetchQueue(allSongs)}
-                    onRemove={removeFromQueue}
-                    onMove={moveInQueue}
-                    onClose={() => setQueuePanelOpen(false)}
-                    onNeedLogin={() => setLoginModalOpen(true)}
-                  />
-                )}
-
-                {infoPanelOpen && (
-                  <InfoPanel
-                    session={credentials}
-                    onClose={() => setInfoPanelOpen(false)}
-                    onAuthError={handleAuthError}
-                    onOpenLogin={() => setLoginModalOpen(true)}
-                    favSongs={favSongs}
-                    onToggleFav={toggleFav}
-                    isInQueue={isInQueue}
-                    onAddToQueue={async (s) => {
-                      try { await addToQueue(s) } catch { /* affiché via songStatus */ }
-                    }}
-                    songStatus={songStatus}
-                    onPreview={playPreview}
-                    previewSongId={previewTrack?.songId}
-                    previewStatus={
-                      previewTrack
-                        ? previewLoading ? 'loading' : previewPlaying ? 'playing' : 'idle'
-                        : undefined
-                    }
-                  />
                 )}
               </div>
-            </>
+            )}
+          </div>
+
+          {/* ── Panneaux latéraux — disponibles quel que soit l'onglet ── */}
+          {queuePanelOpen && (
+            <QueuePanel
+              queue={queue}
+              entryStatus={entryStatus}
+              hasCredentials={true}
+              isLoadingQueue={isLoadingQueue}
+              onReload={() => fetchQueue(allSongs)}
+              onRemove={removeFromQueue}
+              onMove={moveInQueue}
+              onClose={() => setQueuePanelOpen(false)}
+              onNeedLogin={() => setLoginModalOpen(true)}
+            />
           )}
 
-          {/* ── Onglet Ma liste ── */}
-          {mainTab === 'maListe' && (
-            <div className={styles.tabPane} style={previewTrack ? { paddingBottom: 88 } : undefined}>
-              <FavPanel
-                favSongs={favSongs}
-                onRemove={toggleFav}
-                onClear={clearFavs}
-                onClose={() => setMainTab('catalogue')}
-                onPreview={playPreview}
-                onAddToQueue={async (s) => {
-                  try { await addToQueue(s) } catch { /* affiché via songStatus */ }
-                }}
-                isInQueue={isInQueue}
-                songStatus={songStatus}
-                previewSongId={previewTrack?.songId}
-                previewStatus={
-                  previewTrack
-                    ? previewLoading ? 'loading' : previewPlaying ? 'playing' : 'idle'
-                    : undefined
-                }
-              />
-            </div>
+          {infoPanelOpen && (
+            <InfoPanel
+              session={credentials}
+              onClose={() => setInfoPanelOpen(false)}
+              onAuthError={handleAuthError}
+              onOpenLogin={() => setLoginModalOpen(true)}
+              favSongs={favSongs}
+              onToggleFav={toggleFav}
+              isInQueue={isInQueue}
+              onAddToQueue={async (s) => {
+                try { await addToQueue(s) } catch { /* affiché via songStatus */ }
+              }}
+              songStatus={songStatus}
+              onPreview={playPreview}
+              previewSongId={previewTrack?.songId}
+              previewStatus={
+                previewTrack
+                  ? previewLoading ? 'loading' : previewPlaying ? 'playing' : 'idle'
+                  : undefined
+              }
+            />
           )}
-
-          {/* ── Onglet Demandes ── */}
-          {mainTab === 'demandes' && (
-            <div className={styles.demandesPane} style={previewTrack ? { paddingBottom: 88 } : undefined}>
-              <div className={styles.demandesTitle}>📝 Demande de chanson</div>
-              <p className={styles.demandesDesc}>
-                Tu ne trouves pas ta chanson dans le catalogue ? Envoie une demande à l'animateur pour l'ajouter lors d'une prochaine soirée.
-              </p>
-              <div className={styles.demandesForm}>
-                <textarea
-                  className={styles.demandesInput}
-                  placeholder="Ex: Stromae – Alors on danse"
-                  value={demandeValue}
-                  onChange={e => setDemandeValue(e.target.value)}
-                  rows={3}
-                  disabled={demandeState === 'loading' || demandeState === 'success'}
-                />
-                {demandeState === 'error' && <p className={styles.demandesError}>❌ {demandeError}</p>}
-                {demandeState === 'success' && <p className={styles.demandesSuccess}>✅ Demande envoyée !</p>}
-                <button
-                  className={styles.demandesSendBtn}
-                  onClick={handleSendDemande}
-                  disabled={!demandeValue.trim() || demandeState === 'loading' || demandeState === 'success'}
-                >
-                  {demandeState === 'loading' ? <Spinner size={14} /> : '📩 Envoyer'}
-                </button>
-              </div>
-              {demandeHistory.length > 0 && (
-                <div className={styles.demandesList}>
-                  <div className={styles.demandesListTitle}>Mes demandes (cette session)</div>
-                  {demandeHistory.map((d, i) => (
-                    <div key={i} className={styles.demandesItem}>📌 {d}</div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </>
+        </div>
       )}
 
       {previewTrack && (

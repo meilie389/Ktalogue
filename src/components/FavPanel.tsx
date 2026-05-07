@@ -43,7 +43,7 @@ export function FavPanel({ favSongs, onRemove, onClear, onClose, onAddToQueue, o
     </div>
   )
 
-  const title = <>♥ Ma sélection <span className={styles.count}>{favSongs.length}</span></>
+  const title = <>♥ Favoris <span className={styles.count}>{favSongs.length}</span></>
 
   const content = (
     <>
@@ -124,7 +124,7 @@ export function FavPanel({ favSongs, onRemove, onClear, onClose, onAddToQueue, o
     <aside className={styles.panel}>
       <div className={styles.header}>
         <div className={styles.titleRow}>
-          <span className={styles.title}>Ma sélection</span>
+          <span className={styles.title}>Favoris</span>
           <span className={styles.count}>{favSongs.length}</span>
           <div className={styles.sortRow}>
             {(['artist', 'title', 'added'] as const).map(k => (

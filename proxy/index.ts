@@ -10,6 +10,7 @@
  *   POST /remove           { token, karaoke_id }                     → any
  *   POST /change-position  { token, karaoke_id, direction }          → any
  *   POST /songrequest      { token, value }                          → { ok: true }
+ *   POST /myrequests       { token }                                  → { requests: RequestEntry[] }
  *   POST /top              { token }                                  → TopEntry[]
  *   GET  /health                                                       → { ok: true }
  *
@@ -85,6 +86,31 @@ async function getSession(token: string): Promise<KtaloqueSession | null> {
 
 async function deleteSession(token: string): Promise<void> {
   await kv.delete(["sessions", token]);
+}
+
+// ── Requests store (Deno KV) ──────────────────────────────────────────────────
+
+interface RequestEntry {
+  value: string;
+  createdAt: number;
+}
+
+const REQUESTS_MAX = 50; // max demandes gardées par user
+
+async function saveRequest(email: string, value: string): Promise<void> {
+  const entry: RequestEntry = { value, createdAt: Date.now() };
+  // Utilise le timestamp comme clé → tri chronologique naturel
+  await kv.set(["requests", email, entry.createdAt], entry);
+}
+
+async function getUserRequests(email: string): Promise<RequestEntry[]> {
+  const entries: RequestEntry[] = [];
+  const iter = kv.list<RequestEntry>({ prefix: ["requests", email] }, { limit: REQUESTS_MAX });
+  for await (const item of iter) {
+    if (item.value) entries.push(item.value);
+  }
+  // Plus récent en premier
+  return entries.sort((a, b) => b.createdAt - a.createdAt);
 }
 
 // ── e-events login → CookieJar ────────────────────────────────────────────────
@@ -455,12 +481,28 @@ Deno.serve(async (req: Request) => {
 
       // 302 = succès (Laravel redirige après POST)
       if (srRes.status === 302 || srRes.status === 200) {
+        // Persiste la demande en KV pour l'historique utilisateur
+        await saveRequest(session.email, body.value.trim());
         return jsonOk({ ok: true });
       }
       return jsonError(`Erreur ${srRes.status}`, 502);
     } catch (e) {
       const err = e as Error & { status?: number };
       console.error("Proxy /songrequest error:", err.message);
+      return jsonError(err.message, err.status ?? 502);
+    }
+  }
+
+  // ── POST /myrequests ─────────────────────────────────────────────────────────
+  if (url.pathname === "/myrequests") {
+    try {
+      const body = await parseBody(req);
+      const session = await requireSession(body);
+      const requests = await getUserRequests(session.email);
+      return jsonOk({ requests });
+    } catch (e) {
+      const err = e as Error & { status?: number };
+      console.error("Proxy /myrequests error:", err.message);
       return jsonError(err.message, err.status ?? 502);
     }
   }
