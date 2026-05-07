@@ -93,6 +93,7 @@
   flex: 1;
   overflow-y: auto;
   padding-right: 22px; /* espace pour l'index */
+  position: relative;
 }
 
 /* ── Bouton mobile (caché sur desktop, géré dans App.tsx) ── */
@@ -166,6 +167,7 @@
   overflow-y: auto;
   padding-bottom: 16px;
   padding-right: 28px; /* espace pour l'index alphabétique */
+  position: relative;
 }
 
 .letterHeader {

@@ -46,7 +46,14 @@ export function ArtistSidebar({ artists, total, activeArtist, onSelect, drawerOp
     const container = listRef.current
     const el = container?.querySelector(`[data-letter="${letter}"]`) as HTMLElement | null
     if (container && el) {
-      container.scrollTop += el.getBoundingClientRect().top - container.getBoundingClientRect().top
+      // offsetTop donne la position naturelle, indépendante du sticky
+      let top = 0
+      let curr: HTMLElement | null = el
+      while (curr && curr !== container) {
+        top += curr.offsetTop
+        curr = curr.offsetParent as HTMLElement | null
+      }
+      container.scrollTop = top
     }
   }
 
@@ -79,7 +86,13 @@ export function ArtistSidebar({ artists, total, activeArtist, onSelect, drawerOp
     const container = sidebarListRef.current
     const el = container?.querySelector(`[data-letter="${letter}"]`) as HTMLElement | null
     if (container && el) {
-      container.scrollTop += el.getBoundingClientRect().top - container.getBoundingClientRect().top
+      let top = 0
+      let curr: HTMLElement | null = el
+      while (curr && curr !== container) {
+        top += curr.offsetTop
+        curr = curr.offsetParent as HTMLElement | null
+      }
+      container.scrollTop = top
     }
   }
 
