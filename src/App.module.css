@@ -219,3 +219,116 @@
   white-space: nowrap;
   flex-shrink: 0;
 }
+
+.demandesLoading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 13px;
+  padding: 8px 0;
+}
+
+/* ── Filter bar (Catalogue & Favoris tabs) ── */
+.filterBar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 10px 14px 8px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.searchWrap {
+  position: relative;
+  flex: 1;
+  min-width: 180px;
+  max-width: 380px;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 32px 8px 34px;
+  color: var(--text);
+  font-size: 13.5px;
+  outline: none;
+  transition: border-color 0.18s;
+}
+.searchInput:focus { border-color: var(--accent); }
+.searchInput::placeholder { color: var(--muted); }
+
+.clearSearch {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 12px;
+  padding: 2px;
+  transition: color 0.15s;
+}
+.clearSearch:hover { color: var(--text); }
+
+.filterSelect {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 11px;
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.18s;
+}
+.filterSelect:focus { border-color: var(--accent); }
+
+.chip {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 6px 13px;
+  font-size: 12.5px;
+  color: var(--text2);
+  transition: all 0.18s;
+  white-space: nowrap;
+}
+.chip:hover { border-color: var(--muted); color: var(--text); }
+
+.chipDuo {
+  border-color: rgba(2, 132, 199, 0.4);
+  color: var(--duo);
+  background: rgba(2, 132, 199, 0.07);
+}
+
+.chipFav {
+  border-color: rgba(219, 39, 119, 0.4);
+  color: var(--fav);
+  background: rgba(219, 39, 119, 0.07);
+}
+
+.chipNew {
+  border-color: rgba(22, 163, 74, 0.4);
+  color: var(--green);
+  background: rgba(22, 163, 74, 0.07);
+}
+
+@media (max-width: 640px) {
+  .filterBar { padding: 8px 10px 6px; }
+  .searchInput { font-size: 15px; padding: 10px 34px 10px 36px; }
+  .filterSelect { font-size: 14px; padding: 10px 12px; }
+  .chip { font-size: 13px; padding: 7px 12px; }
+}

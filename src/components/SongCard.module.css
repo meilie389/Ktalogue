@@ -39,7 +39,7 @@
 
 .artist {
   font-size: 12px;
-  color: var(--muted);
+  color: var(--text2);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -111,8 +111,9 @@
 .favActive { color: var(--fav) !important; }
 
 .isPlaying {
-  border-color: rgba(var(--accent-rgb), 0.45) !important;
-  background: rgba(var(--accent-rgb), 0.05) !important;
+  border-color: var(--accent2) !important;
+  background: color-mix(in srgb, var(--accent2) 10%, var(--surface)) !important;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent2) 30%, transparent);
 }
 
 .cardActions {

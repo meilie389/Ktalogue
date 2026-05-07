@@ -101,6 +101,11 @@ export default function App() {
     [allSongs, favIds]
   )
 
+  const filteredFavSongs = useMemo(
+    () => filterSongs({ ...filters, favOnly: true, newOnly: false }, null),
+    [allSongs, filters, favIds] // eslint-disable-line
+  )
+
   function handleExportCatalog() {
     // Exporte tout le catalogue (base + extras + enrichissement iTunes)
     // en retirant les champs runtime uniquement présents en mémoire
@@ -193,13 +198,6 @@ export default function App() {
         total={allSongs.length}
         filtered={filtered.length}
         totalNew={totalNew}
-        filters={filters}
-        langs={langs}
-        onFiltersChange={patchFilters}
-        onOpenRefresh={() => setSyncModalOpen(true)}
-        onOpenLogin={() => setLoginModalOpen(true)}
-        onLogout={handleLogout}
-        onReset={handleReset}
         queueCount={queue.length}
         queuePanelOpen={queuePanelOpen}
         onToggleQueuePanel={() => { setQueuePanelOpen(v => !v); setInfoPanelOpen(false) }}
@@ -209,6 +207,10 @@ export default function App() {
         onToggleTheme={toggleTheme}
         infoPanelOpen={infoPanelOpen}
         onToggleInfoPanel={() => setInfoPanelOpen(v => !v)}
+        onOpenRefresh={() => setSyncModalOpen(true)}
+        onOpenLogin={() => setLoginModalOpen(true)}
+        onLogout={handleLogout}
+        onReset={handleReset}
       />
 
       {/* ── Non connecté ── */}
@@ -246,6 +248,46 @@ export default function App() {
             {/* ── Onglet Catalogue ── */}
             {mainTab === 'catalogue' && (
               <>
+                {/* Barre de recherche & filtres */}
+                <div className={styles.filterBar}>
+                  <div className={styles.searchWrap}>
+                    <svg className={styles.searchIcon} width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
+                    </svg>
+                    <input
+                      type="search"
+                      className={styles.searchInput}
+                      placeholder="Titre, artiste…"
+                      value={filters.query}
+                      onChange={e => patchFilters({ query: e.target.value })}
+                    />
+                    {filters.query && (
+                      <button className={styles.clearSearch} onClick={() => patchFilters({ query: '' })}>✕</button>
+                    )}
+                  </div>
+                  <select
+                    className={styles.filterSelect}
+                    value={filters.lang}
+                    onChange={e => patchFilters({ lang: e.target.value })}
+                  >
+                    <option value="">Toutes les langues</option>
+                    {langs.map(l => <option key={l} value={l}>{l}</option>)}
+                  </select>
+                  <button
+                    className={`${styles.chip} ${filters.duo ? styles.chipDuo : ''}`}
+                    onClick={() => patchFilters({ duo: !filters.duo })}
+                  >🎵 Duo</button>
+                  <button
+                    className={`${styles.chip} ${filters.favOnly ? styles.chipFav : ''}`}
+                    onClick={() => patchFilters({ favOnly: !filters.favOnly })}
+                  >♥ Favoris</button>
+                  {totalNew > 0 && (
+                    <button
+                      className={`${styles.chip} ${filters.newOnly ? styles.chipNew : ''}`}
+                      onClick={() => patchFilters({ newOnly: !filters.newOnly })}
+                    >✨ Nouveautés ({totalNew})</button>
+                  )}
+                </div>
                 <button
                   className={styles.artistMobileBtn}
                   onClick={() => setArtistDrawerOpen(true)}
@@ -315,11 +357,40 @@ export default function App() {
             {/* ── Onglet Favoris ── */}
             {mainTab === 'favoris' && (
               <div className={styles.tabPane} style={previewTrack ? { paddingBottom: 88 } : undefined}>
+                {/* Barre de recherche & filtres (sans nouveautés) */}
+                <div className={styles.filterBar}>
+                  <div className={styles.searchWrap}>
+                    <svg className={styles.searchIcon} width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
+                    </svg>
+                    <input
+                      type="search"
+                      className={styles.searchInput}
+                      placeholder="Titre, artiste…"
+                      value={filters.query}
+                      onChange={e => patchFilters({ query: e.target.value })}
+                    />
+                    {filters.query && (
+                      <button className={styles.clearSearch} onClick={() => patchFilters({ query: '' })}>✕</button>
+                    )}
+                  </div>
+                  <select
+                    className={styles.filterSelect}
+                    value={filters.lang}
+                    onChange={e => patchFilters({ lang: e.target.value })}
+                  >
+                    <option value="">Toutes les langues</option>
+                    {langs.map(l => <option key={l} value={l}>{l}</option>)}
+                  </select>
+                  <button
+                    className={`${styles.chip} ${filters.duo ? styles.chipDuo : ''}`}
+                    onClick={() => patchFilters({ duo: !filters.duo })}
+                  >🎵 Duo</button>
+                </div>
                 <FavPanel
-                  favSongs={favSongs}
+                  favSongs={filteredFavSongs}
                   onRemove={toggleFav}
                   onClear={clearFavs}
-                  onClose={() => setMainTab('catalogue')}
                   onPreview={playPreview}
                   onAddToQueue={async (s) => {
                     try { await addToQueue(s) } catch { /* affiché via songStatus */ }
@@ -362,10 +433,15 @@ export default function App() {
                     {demandeState === 'loading' ? <Spinner size={14} /> : '📩 Envoyer'}
                   </button>
                 </div>
-                  {demandeHistory.length > 0 && (
+                  {demandeHistoryLoading && (
+                  <div className={styles.demandesLoading}>
+                    <Spinner size={16} /> Chargement…
+                  </div>
+                )}
+                  {!demandeHistoryLoading && demandeHistory.length > 0 && (
                   <div className={styles.demandesList}>
                     <div className={styles.demandesListTitle}>
-                      Mes demandes{demandeHistoryLoading ? ' …' : ` (${demandeHistory.length})`}
+                      Mes demandes ({demandeHistory.length})
                     </div>
                     {demandeHistory.map((d, i) => (
                       <div key={i} className={styles.demandesItem}>

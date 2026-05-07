@@ -1,7 +1,7 @@
 .header {
   background: var(--surface);
   border-bottom: 1px solid var(--border);
-  padding: 14px 16px 12px;
+  padding: 10px 16px 10px;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -12,7 +12,14 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   flex-wrap: wrap;
 }
 

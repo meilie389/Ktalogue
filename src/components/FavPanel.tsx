@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import type { Song } from '../types'
-import { BottomSheet } from './BottomSheet'
 import { Spinner } from './Spinner'
 import styles from './FavPanel.module.css'
 import cardStyles from './SongCard.module.css'
@@ -10,7 +9,6 @@ interface Props {
   onRemove: (id: number) => void
   onClear: () => void
   onExport?: () => void
-  onClose: () => void
   onAddToQueue?: (song: Song) => void
   onPreview?: (song: Song) => void
   isInQueue?: (songId: number) => boolean
@@ -19,31 +17,14 @@ interface Props {
   previewStatus?: 'loading' | 'playing' | 'idle'
 }
 
-export function FavPanel({ favSongs, onRemove, onClear, onClose, onAddToQueue, onPreview, isInQueue, songStatus, previewSongId, previewStatus }: Props) {
+export function FavPanel({ favSongs, onRemove, onClear, onAddToQueue, onPreview, isInQueue, songStatus, previewSongId, previewStatus }: Props) {
   const [sortBy, setSortBy] = useState<'artist' | 'title' | 'added'>('artist')
-  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 640
 
   const sorted = [...favSongs].sort((a, b) => {
     if (sortBy === 'artist') return (a.artist || '').localeCompare(b.artist || '', 'fr')
     if (sortBy === 'title') return (a.title || '').localeCompare(b.title || '', 'fr')
     return b.id - a.id
   })
-
-  const headerActions = (
-    <div className={styles.sortRow}>
-      {(['artist', 'title', 'added'] as const).map(k => (
-        <button
-          key={k}
-          className={`${styles.sortBtn} ${sortBy === k ? styles.sortActive : ''}`}
-          onClick={() => setSortBy(k)}
-        >
-          {k === 'artist' ? 'Artiste' : k === 'title' ? 'Titre' : 'Récent'}
-        </button>
-      ))}
-    </div>
-  )
-
-  const title = <>♥ Favoris <span className={styles.count}>{favSongs.length}</span></>
 
   const content = (
     <>
@@ -112,14 +93,6 @@ export function FavPanel({ favSongs, onRemove, onClear, onClose, onAddToQueue, o
     </>
   )
 
-  if (isMobile) {
-    return (
-      <BottomSheet title={title} onClose={onClose} headerActions={headerActions}>
-        {content}
-      </BottomSheet>
-    )
-  }
-
   return (
     <aside className={styles.panel}>
       <div className={styles.header}>
@@ -137,7 +110,6 @@ export function FavPanel({ favSongs, onRemove, onClear, onClose, onAddToQueue, o
               </button>
             ))}
           </div>
-          <button className={styles.closeBtn} onClick={onClose} aria-label="Fermer">✕</button>
         </div>
       </div>
       {content}
