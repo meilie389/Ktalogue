@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import type { Filters } from '../types'
+import type { Theme } from '../hooks/useTheme'
 import styles from './Header.module.css'
 
 interface Props {
@@ -13,6 +14,7 @@ interface Props {
   queueCount: number
   queuePanelOpen: boolean
   userEmail: string | null
+  theme: Theme
   onFiltersChange: (f: Partial<Filters>) => void
   onToggleFavPanel: () => void
   onToggleQueuePanel: () => void
@@ -21,16 +23,17 @@ interface Props {
   onLogout: () => void
   onReset: () => void
   onExportCatalog: () => void
+  onToggleTheme: () => void
   infoPanelOpen: boolean
   onToggleInfoPanel: () => void
 }
 
 export function Header({
   total, filtered, totalNew, favCount, filters, langs,
-  favPanelOpen, queueCount, queuePanelOpen, userEmail,
+  favPanelOpen, queueCount, queuePanelOpen, userEmail, theme,
   onFiltersChange, onToggleFavPanel, onToggleQueuePanel,
   onOpenRefresh, onOpenLogin, onLogout, onReset, onExportCatalog,
-  infoPanelOpen, onToggleInfoPanel,
+  onToggleTheme, infoPanelOpen, onToggleInfoPanel,
 }: Props) {
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -141,6 +144,14 @@ export function Header({
             title="Infos soirée"
           >
             ℹ️<span className={styles.btnLabel}> Infos</span>
+          </button>
+
+          <button
+            className={styles.themeBtn}
+            onClick={onToggleTheme}
+            title={theme === 'dark' ? 'Passer en thème clair' : 'Passer en thème sombre'}
+          >
+            {theme === 'dark' ? '☀️' : '🌙'}
           </button>
 
         </div>

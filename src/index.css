@@ -1,20 +1,47 @@
-:root {
-  --bg: #f5f0fa;
+/* ── Thème clair (E PROD NC — day) ── */
+:root,
+[data-theme="light"] {
+  --bg: #f3f0ff;
   --surface: #ffffff;
-  --surface2: #ede8f5;
-  --surface3: #e2daf0;
-  --border: #d4cce8;
-  --accent: #7c3aed;
-  --accent2: #db2777;
-  --accent3: #0284c7;
-  --gold: #d97706;
-  --green: #16a34a;
-  --text: #1e1333;
-  --text2: #4b3d6e;
-  --muted: #8b7aa8;
-  --fav: #db2777;
-  --duo: #0284c7;
-  --new: #16a34a;
+  --surface2: #ebe6fa;
+  --surface3: #ddd6f5;
+  --border: #c8bfe8;
+  --accent: #50046c;      /* violet e-events */
+  --accent2: #fa9215;     /* orange e-events */
+  --accent3: #2b5699;     /* bleu e-events */
+  --gold: #fa9215;
+  --green: #198754;
+  --text: #000036;        /* bleu marine très sombre */
+  --text2: #1a0c4e;
+  --muted: #7a5090;
+  --fav: #991d8a;         /* magenta e-events */
+  --duo: #2b5699;
+  --new: #198754;
+  --radius: 10px;
+  --radius-sm: 6px;
+  --font-display: 'Playfair Display', serif;
+  --font-mono: 'DM Mono', monospace;
+  --font-body: 'DM Sans', sans-serif;
+}
+
+/* ── Thème sombre (E PROD NC — night) ── */
+[data-theme="dark"] {
+  --bg: #000036;          /* bleu nuit e-events */
+  --surface: #010458;     /* bleu profond */
+  --surface2: #07108a;
+  --surface3: #0e1ba0;
+  --border: #1e2ab8;
+  --accent: #ff14af;      /* rose/magenta signature */
+  --accent2: #fa9215;     /* orange */
+  --accent3: #33b0fb;     /* bleu ciel */
+  --gold: #fa9215;
+  --green: #198754;
+  --text: #ffffff;
+  --text2: #b0c4f8;
+  --muted: #6878c8;
+  --fav: #ff14af;
+  --duo: #33b0fb;
+  --new: #198754;
   --radius: 10px;
   --radius-sm: 6px;
   --font-display: 'Playfair Display', serif;

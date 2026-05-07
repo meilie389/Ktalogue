@@ -138,6 +138,22 @@
 .infoBtn:hover { background: rgba(124, 58, 237, 0.07); }
 .infoBtnOpen { background: rgba(124, 58, 237, 0.07); border-color: rgba(124, 58, 237, 0.35); color: var(--accent); }
 
+.themeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  background: none;
+  cursor: pointer;
+  font-size: 15px;
+  transition: background 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+.themeBtn:hover { background: var(--surface2); border-color: var(--accent); }
+
 .queueBadge {
   background: var(--accent);
   color: white;

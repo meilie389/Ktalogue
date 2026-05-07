@@ -3,6 +3,7 @@ import type { Filters, Session } from './types'
 import { useSongs, PROXY_URL } from './hooks/useSongs'
 import { useQueue } from './hooks/useQueue'
 import { useVirtualList } from './hooks/useVirtualList'
+import { useTheme } from './hooks/useTheme'
 import { Header } from './components/Header'
 import { ArtistSidebar } from './components/ArtistSidebar'
 import { SongCard } from './components/SongCard'
@@ -25,6 +26,7 @@ const DEFAULT_FILTERS: Filters = {
 }
 
 export default function App() {
+  const { theme, toggleTheme } = useTheme()
   const {
     allSongs, favIds, langs, artists, totalNew,
     refreshStatus, setRefreshStatus,
@@ -69,6 +71,11 @@ export default function App() {
   const favSongs = useMemo(
     () => allSongs.filter(s => favIds.has(s.id)),
     [allSongs, favIds]
+  )
+
+  const nouveautes = useMemo(
+    () => allSongs.filter(s => s.isNew),
+    [allSongs]
   )
 
   function handleExportFavs() {
@@ -160,6 +167,8 @@ export default function App() {
         onToggleQueuePanel={() => { setQueuePanelOpen(v => !v); setFavPanelOpen(false); setInfoPanelOpen(false) }}
         userEmail={credentials?.email ?? null}
         onExportCatalog={handleExportCatalog}
+        theme={theme}
+        onToggleTheme={toggleTheme}
         infoPanelOpen={infoPanelOpen}
         onToggleInfoPanel={() => setInfoPanelOpen(v => !v)}
       />
@@ -275,6 +284,29 @@ export default function App() {
             session={credentials}
             onClose={() => setInfoPanelOpen(false)}
             onAuthError={handleAuthError}
+            onOpenLogin={() => { setInfoPanelOpen(false); setLoginModalOpen(true) }}
+            nouveautes={nouveautes}
+            favSongs={favSongs}
+            onToggleFav={toggleFav}
+            queue={queue}
+            entryStatus={entryStatus}
+            isLoadingQueue={isLoadingQueue}
+            onReloadQueue={() => fetchQueue(allSongs)}
+            isInQueue={isInQueue}
+            onAddToQueue={async (s) => {
+              if (!credentials) { setInfoPanelOpen(false); setLoginModalOpen(true); return }
+              try { await addToQueue(s) } catch { /* affiché via songStatus */ }
+            }}
+            onRemoveFromQueue={removeFromQueue}
+            onMoveInQueue={moveInQueue}
+            songStatus={songStatus}
+            onPreview={playPreview}
+            previewSongId={previewTrack?.songId}
+            previewStatus={
+              previewTrack
+                ? previewLoading ? 'loading' : previewPlaying ? 'playing' : 'idle'
+                : undefined
+            }
           />
         )}
       </div>

@@ -10,6 +10,13 @@
     <link rel="apple-touch-icon" href="./mic.svg" />
     <link rel="manifest" href="./manifest.json" />
     <title>🎤 Karaoké</title>
+    <!-- Anti-flash : applique le thème avant le rendu React -->
+    <script>
+      (function() {
+        var t = localStorage.getItem('ktalogue-theme');
+        document.documentElement.setAttribute('data-theme', t === 'light' ? 'light' : 'dark');
+      })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
