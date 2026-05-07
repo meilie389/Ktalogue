@@ -43,8 +43,11 @@ export function ArtistSidebar({ artists, total, activeArtist, onSelect, drawerOp
   const letters = grouped ? [...grouped.keys()].sort((a, b) => a === '#' ? 1 : b === '#' ? -1 : a.localeCompare(b)) : []
 
   function scrollToLetter(letter: string) {
-    const el = listRef.current?.querySelector(`[data-letter="${letter}"]`)
-    el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    const container = listRef.current
+    const el = container?.querySelector(`[data-letter="${letter}"]`) as HTMLElement | null
+    if (container && el) {
+      container.scrollTop += el.getBoundingClientRect().top - container.getBoundingClientRect().top
+    }
   }
 
   const [sidebarSearch, setSidebarSearch] = useState('')
@@ -73,8 +76,11 @@ export function ArtistSidebar({ artists, total, activeArtist, onSelect, drawerOp
     : []
 
   function scrollSidebarToLetter(letter: string) {
-    const el = sidebarListRef.current?.querySelector(`[data-letter="${letter}"]`)
-    el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    const container = sidebarListRef.current
+    const el = container?.querySelector(`[data-letter="${letter}"]`) as HTMLElement | null
+    if (container && el) {
+      container.scrollTop += el.getBoundingClientRect().top - container.getBoundingClientRect().top
+    }
   }
 
   const sidebarContent = (
