@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import styles from './HomeScreen.module.css'
 
 interface Props {
@@ -13,26 +14,29 @@ const REGLEMENT_KARAOKE = [
   "Pas de passe-droit même pour nos stars habituées.",
 ]
 
-export function HomeScreen({ onLogin }: Props) {
+function ReglementCard() {
+  const [tab, setTab] = useState<'karaoke' | 'blindtest'>('karaoke')
   return (
-    <div className={styles.root}>
-      {/* ── Hero ── */}
-      <div className={styles.hero}>
-        <div className={styles.heroEmoji}>🎤</div>
-        <h1 className={styles.heroTitle}>Soirée E PROD NC</h1>
-        <p className={styles.heroSub}>Karaoké live, blind test, animations musicales en Nouvelle-Calédonie</p>
-        <a href="https://www.eprodnc.com/" target="_blank" rel="noopener noreferrer" className={styles.heroLink}>
-          Découvrir eprodnc.com →
-        </a>
+    <div className={styles.section}>
+      <h2 className={styles.sectionTitle}>📋 Règlement</h2>
+
+      <div className={styles.tabs}>
+        <button
+          className={`${styles.tab} ${tab === 'karaoke' ? styles.tabActive : ''}`}
+          onClick={() => setTab('karaoke')}
+        >
+          🎤 Karaoké Live
+        </button>
+        <button
+          className={`${styles.tab} ${tab === 'blindtest' ? styles.tabActive : ''}`}
+          onClick={() => setTab('blindtest')}
+        >
+          🎵 Quizz Musical
+        </button>
       </div>
 
-      <div className={styles.sections}>
-        {/* ── Karaoké ── */}
-        <div className={styles.section}>
-          <div className={styles.sectionHeader}>
-            <span className={styles.sectionEmoji}>🎤</span>
-            <h2 className={styles.sectionTitle}>Karaoké Live</h2>
-          </div>
+      {tab === 'karaoke' && (
+        <>
           <p className={styles.sectionIntro}>Pour le bon déroulement de nos soirées Karaoké…</p>
           <ol className={styles.rulesList}>
             {REGLEMENT_KARAOKE.map((r, i) => <li key={i}>{r}</li>)}
@@ -40,14 +44,11 @@ export function HomeScreen({ onLogin }: Props) {
           <a href="https://www.eprodnc.com/soireekaraokelive" target="_blank" rel="noopener noreferrer" className={styles.moreLink}>
             En savoir plus sur le Karaoké Live →
           </a>
-        </div>
+        </>
+      )}
 
-        {/* ── Blind Test ── */}
-        <div className={styles.section}>
-          <div className={styles.sectionHeader}>
-            <span className={styles.sectionEmoji}>🎵</span>
-            <h2 className={styles.sectionTitle}>Quizz Musical — Blind Test</h2>
-          </div>
+      {tab === 'blindtest' && (
+        <>
           <p className={styles.sectionText}>
             Les équipes s'apprêtent à s'affronter dans une série de battles de Blind-Test où chacun devra mettre en avant sa culture musicale pour gagner un maximum de points. Attention, il faudra se montrer réactif pour remporter la mise ! Une épreuve explosive dont le duo Auguste et Kevin est à l'origine.
           </p>
@@ -63,7 +64,28 @@ export function HomeScreen({ onLogin }: Props) {
           <a href="https://www.eprodnc.com/quizzteampro" target="_blank" rel="noopener noreferrer" className={styles.moreLink}>
             En savoir plus sur le Quizz Team Pro →
           </a>
-        </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+export function HomeScreen({ onLogin }: Props) {
+  return (
+    <div className={styles.root}>
+      {/* ── Hero ── */}
+      <div className={styles.hero}>
+        <div className={styles.heroEmoji}>🎤</div>
+        <h1 className={styles.heroTitle}>Soirée E PROD NC</h1>
+        <p className={styles.heroSub}>Karaoké live, blind test, animations musicales en Nouvelle-Calédonie</p>
+        <a href="https://www.eprodnc.com/" target="_blank" rel="noopener noreferrer" className={styles.heroLink}>
+          Découvrir eprodnc.com →
+        </a>
+      </div>
+
+      <div className={styles.sections}>
+        {/* ── Encart Règlement avec onglets ── */}
+        <ReglementCard />
 
         {/* ── Login ── */}
         <div className={styles.loginCard}>

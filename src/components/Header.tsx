@@ -53,18 +53,31 @@ export function Header({
   return (
     <header className={styles.header}>
       <div className={styles.top}>
-        <div className={styles.logo} onClick={onReset} title="Retour à l'accueil" style={{ cursor: 'pointer' }}>🎤 Karaoké</div>
 
-        <div className={styles.meta}>
-          <span className={styles.pill}>
-            <span className={styles.pillNum}>{total.toLocaleString('fr')}</span> titres
-          </span>
-          {filtered !== total && (
+        {/* Logo — lien eprodnc si non connecté, reset si connecté */}
+        {userEmail ? (
+          <div className={styles.logo} onClick={onReset} title="Retour à l'accueil" style={{ cursor: 'pointer' }}>
+            🎤 Karaoké
+          </div>
+        ) : (
+          <a href="https://www.eprodnc.com/" target="_blank" rel="noopener noreferrer" className={styles.logo} title="E PROD NC">
+            🎤
+          </a>
+        )}
+
+        {/* Compteurs de titres — connecté seulement */}
+        {userEmail && (
+          <div className={styles.meta}>
             <span className={styles.pill}>
-              <span className={styles.pillNum}>{filtered.toLocaleString('fr')}</span> affichés
+              <span className={styles.pillNum}>{total.toLocaleString('fr')}</span> titres
             </span>
-          )}
-        </div>
+            {filtered !== total && (
+              <span className={styles.pill}>
+                <span className={styles.pillNum}>{filtered.toLocaleString('fr')}</span> affichés
+              </span>
+            )}
+          </div>
+        )}
 
         <div className={styles.actions}>
           {userEmail ? (
@@ -120,23 +133,29 @@ export function Header({
             </button>
           )}
 
-          <button
-            className={`${styles.favPanelBtn} ${favPanelOpen ? styles.favPanelOpen : ''} ${favCount > 0 ? styles.hasFavs : ''}`}
-            onClick={onToggleFavPanel}
-            title="Mes favoris"
-          >
-            ♥<span className={styles.btnLabel}> Ma liste</span>
-            {favCount > 0 && <span className={styles.favBadge}>{favCount}</span>}
-          </button>
+          {/* Ma liste — connecté seulement */}
+          {userEmail && (
+            <button
+              className={`${styles.favPanelBtn} ${favPanelOpen ? styles.favPanelOpen : ''} ${favCount > 0 ? styles.hasFavs : ''}`}
+              onClick={onToggleFavPanel}
+              title="Mes favoris"
+            >
+              ♥<span className={styles.btnLabel}> Ma liste</span>
+              {favCount > 0 && <span className={styles.favBadge}>{favCount}</span>}
+            </button>
+          )}
 
-          <button
-            className={`${styles.queueBtn} ${queuePanelOpen ? styles.queueBtnOpen : ''} ${queueCount > 0 ? styles.queueBtnActive : ''}`}
-            onClick={onToggleQueuePanel}
-            title="File d'attente karaoké"
-          >
-            🎙<span className={styles.btnLabel}> File</span>
-            {queueCount > 0 && <span className={styles.queueBadge}>{queueCount}</span>}
-          </button>
+          {/* File d'attente — connecté seulement */}
+          {userEmail && (
+            <button
+              className={`${styles.queueBtn} ${queuePanelOpen ? styles.queueBtnOpen : ''} ${queueCount > 0 ? styles.queueBtnActive : ''}`}
+              onClick={onToggleQueuePanel}
+              title="File d'attente karaoké"
+            >
+              🎙<span className={styles.btnLabel}> File</span>
+              {queueCount > 0 && <span className={styles.queueBadge}>{queueCount}</span>}
+            </button>
+          )}
 
           {userEmail && (
             <button
@@ -159,6 +178,8 @@ export function Header({
         </div>
       </div>
 
+      {/* Barre de recherche et filtres — connecté seulement */}
+      {userEmail && (
       <div className={styles.controls}>
         <div className={styles.searchWrap}>
           <svg className={styles.searchIcon} width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -208,6 +229,7 @@ export function Header({
           </button>
         )}
       </div>
+      )}
     </header>
   )
 }
