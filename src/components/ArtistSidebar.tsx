@@ -47,26 +47,106 @@ export function ArtistSidebar({ artists, total, activeArtist, onSelect, drawerOp
     el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
-  const sidebarList = (
-    <div className={styles.list}>
-      <div
-        className={`${styles.item} ${activeArtist === null ? styles.active : ''}`}
-        onClick={() => handleSelect(null)}
-      >
-        <span className={styles.name}>Tous</span>
-        <span className={styles.count}>{total.toLocaleString('fr')}</span>
-      </div>
-      {artists.map(([name, count]) => (
-        <div
-          key={name}
-          className={`${styles.item} ${activeArtist === name ? styles.active : ''}`}
-          onClick={() => handleSelect(name)}
-        >
-          <span className={styles.name}>{name}</span>
-          <span className={styles.count}>{count}</span>
+  const [sidebarSearch, setSidebarSearch] = useState('')
+  const sidebarListRef = useRef<HTMLDivElement>(null)
+
+  const filteredSidebar = useMemo(() => {
+    if (!sidebarSearch.trim()) return artists
+    const q = sidebarSearch.trim().toLowerCase()
+    return artists.filter(([name]) => name.toLowerCase().includes(q))
+  }, [artists, sidebarSearch])
+
+  const groupedSidebar = useMemo(() => {
+    if (sidebarSearch.trim()) return null
+    const map = new Map<string, [string, number][]>()
+    for (const entry of artists) {
+      const letter = entry[0][0]?.toUpperCase() ?? '#'
+      const key = /[A-Z]/.test(letter) ? letter : '#'
+      if (!map.has(key)) map.set(key, [])
+      map.get(key)!.push(entry)
+    }
+    return map
+  }, [artists, sidebarSearch])
+
+  const sidebarLetters = groupedSidebar
+    ? [...groupedSidebar.keys()].sort((a, b) => a === '#' ? 1 : b === '#' ? -1 : a.localeCompare(b))
+    : []
+
+  function scrollSidebarToLetter(letter: string) {
+    const el = sidebarListRef.current?.querySelector(`[data-letter="${letter}"]`)
+    el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  const sidebarContent = (
+    <>
+      <div className={styles.sidebarSearchRow}>
+        <div className={styles.searchWrap}>
+          <svg className={styles.searchIcon} width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
+          </svg>
+          <input
+            className={styles.sidebarSearchInput}
+            type="search"
+            placeholder="Artiste…"
+            value={sidebarSearch}
+            onChange={e => setSidebarSearch(e.target.value)}
+          />
+          {sidebarSearch && <button className={styles.clearBtn} onClick={() => setSidebarSearch('')}>✕</button>}
         </div>
-      ))}
-    </div>
+      </div>
+      <div className={styles.sidebarBody}>
+        <div className={styles.list} ref={sidebarListRef}>
+          <div
+            className={`${styles.item} ${activeArtist === null ? styles.active : ''}`}
+            onClick={() => handleSelect(null)}
+          >
+            <span className={styles.name}>Tous</span>
+            <span className={styles.count}>{total.toLocaleString('fr')}</span>
+          </div>
+          {sidebarSearch.trim() ? (
+            filteredSidebar.length === 0 ? (
+              <div className={styles.noResults}>Aucun résultat</div>
+            ) : (
+              filteredSidebar.map(([name, count]) => (
+                <div
+                  key={name}
+                  className={`${styles.item} ${activeArtist === name ? styles.active : ''}`}
+                  onClick={() => handleSelect(name)}
+                >
+                  <span className={styles.name}>{name}</span>
+                  <span className={styles.count}>{count}</span>
+                </div>
+              ))
+            )
+          ) : (
+            sidebarLetters.map(letter => (
+              <div key={letter}>
+                <div className={styles.letterHeader} data-letter={letter}>{letter}</div>
+                {groupedSidebar!.get(letter)!.map(([name, count]) => (
+                  <div
+                    key={name}
+                    className={`${styles.item} ${activeArtist === name ? styles.active : ''}`}
+                    onClick={() => handleSelect(name)}
+                  >
+                    <span className={styles.name}>{name}</span>
+                    <span className={styles.count}>{count}</span>
+                  </div>
+                ))}
+              </div>
+            ))
+          )}
+        </div>
+        {!sidebarSearch.trim() && (
+          <div className={styles.alphaIndex}>
+            {sidebarLetters.map(letter => (
+              <button key={letter} className={styles.alphaBtn} onClick={() => scrollSidebarToLetter(letter)}>
+                {letter}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </>
   )
 
   const drawerContent = (
@@ -155,7 +235,7 @@ export function ArtistSidebar({ artists, total, activeArtist, onSelect, drawerOp
       {/* Sidebar desktop */}
       <aside className={styles.sidebar}>
         <div className={styles.label}>Artistes</div>
-        {sidebarList}
+        {sidebarContent}
       </aside>
 
       {/* Drawer mobile */}
