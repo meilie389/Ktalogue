@@ -68,6 +68,123 @@
 }
 
 /* Liste dans le BottomSheet */
+.drawerInner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.searchRow {
+  padding: 8px 14px 10px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.searchWrap {
+  position: relative;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 34px 10px 32px;
+  font-size: 15px;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.searchInput:focus { border-color: var(--accent2); }
+.searchInput::placeholder { color: var(--muted); }
+
+.clearBtn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 13px;
+  padding: 2px 4px;
+}
+
+.drawerBody {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
 .drawerList {
-  padding-bottom: 12px;
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 16px;
+  padding-right: 28px; /* espace pour l'index alphabétique */
+}
+
+.letterHeader {
+  padding: 6px 14px 4px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--accent2);
+  text-transform: uppercase;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.alphaIndex {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 26px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  padding: 4px 0;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.alphaBtn {
+  background: none;
+  border: none;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--accent2);
+  padding: 1px 4px;
+  border-radius: 3px;
+  line-height: 1.4;
+  width: 100%;
+  text-align: center;
+  transition: background 0.1s;
+}
+.alphaBtn:hover { background: rgba(244, 114, 182, 0.12); }
+
+.noResults {
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
 }

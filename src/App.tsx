@@ -465,9 +465,10 @@ export default function App() {
             {/* ── Onglet Demandes ── */}
             {mainTab === 'demandes' && (
               <div className={styles.demandesPane} style={previewTrack ? { paddingBottom: 88 } : undefined}>
-                <div className={styles.demandesTitle}>📝 Demande de chanson</div>
+                <div className={styles.demandesTitle}>📝 Vous ne trouvez pas votre morceau ?</div>
                 <p className={styles.demandesDesc}>
-                  Tu ne trouves pas ta chanson dans le catalogue ? Envoie une demande à l'animateur pour l'ajouter lors d'une prochaine soirée.
+                  Vous pouvez nous envoyer votre morceau et nous le rajouterons dans la liste des chansons disponibles.
+                  N'hésitez pas à nous envoyer directement le lien de votre morceau !
                 </p>
                 <div className={styles.demandesForm}>
                   <textarea
