@@ -238,7 +238,71 @@
   padding: 10px 14px 8px;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
+  background: var(--surface);
 }
+
+/* ── Favoris header bar ── */
+.favHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  background: var(--surface);
+  flex-wrap: wrap;
+}
+
+.favTitle {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 18px;
+  color: var(--fav);
+}
+
+.favCount {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  background: rgba(244, 114, 182, 0.15);
+  color: var(--fav);
+  border-radius: 12px;
+  padding: 2px 10px;
+}
+
+.favSort {
+  display: flex;
+  gap: 5px;
+  margin-left: 4px;
+}
+
+.sortChip {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 11px;
+  color: var(--muted);
+  transition: all 0.15s;
+}
+.sortChip:hover { color: var(--text); }
+.sortChipActive {
+  border-color: var(--fav);
+  color: var(--fav);
+  background: rgba(244, 114, 182, 0.08);
+}
+
+.clearFavBtn {
+  margin-left: auto;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 4px 12px;
+  font-size: 11px;
+  color: var(--muted);
+  transition: all 0.15s;
+}
+.clearFavBtn:hover:not(:disabled) { color: var(--fav); border-color: var(--fav); }
+.clearFavBtn:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .searchWrap {
   position: relative;

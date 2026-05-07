@@ -6,7 +6,7 @@ export function useTheme() {
   const [theme, setTheme] = useState<Theme>(() => {
     const saved = localStorage.getItem('ktalogue-theme') as Theme | null
     if (saved === 'light' || saved === 'dark') return saved
-    return 'dark' // défaut : thème sombre e-events
+    return 'light' // défaut : thème clair
   })
 
   useEffect(() => {

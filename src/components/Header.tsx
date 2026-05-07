@@ -100,6 +100,13 @@ export function Header({
                     </button>
                   )}
                   <button
+                    className={styles.userDropdownItem}
+                    onClick={() => { onToggleTheme(); setMenuOpen(false) }}
+                  >
+                    {theme === 'dark' ? '☀️ Thème clair' : '🌙 Thème sombre'}
+                  </button>
+                  <div className={styles.userDropdownDivider} />
+                  <button
                     className={`${styles.userDropdownItem} ${styles.userDropdownItemDanger}`}
                     onClick={() => { onLogout(); setMenuOpen(false) }}
                   >
@@ -116,7 +123,7 @@ export function Header({
         </div>
       </div>
 
-      {/* Ligne 2 : Sync + File + Infos + Thème — connecté seulement */}
+      {/* Ligne 2 : Sync + File + Infos alignés à droite — connecté seulement */}
       {userEmail && (
         <div className={styles.toolbar}>
           <button
@@ -143,14 +150,6 @@ export function Header({
             title="Infos soirée"
           >
             ℹ️<span className={styles.btnLabel}> Infos</span>
-          </button>
-
-          <button
-            className={styles.themeBtn}
-            onClick={onToggleTheme}
-            title={theme === 'dark' ? 'Passer en thème clair' : 'Passer en thème sombre'}
-          >
-            {theme === 'dark' ? '☀️' : '🌙'}
           </button>
         </div>
       )}

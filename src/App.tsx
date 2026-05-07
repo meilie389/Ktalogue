@@ -7,7 +7,6 @@ import { useTheme } from './hooks/useTheme'
 import { Header } from './components/Header'
 import { ArtistSidebar } from './components/ArtistSidebar'
 import { SongCard } from './components/SongCard'
-import { FavPanel } from './components/FavPanel'
 import { QueuePanel } from './components/QueuePanel'
 import { LoginModal } from './components/LoginModal'
 import { RefreshModal } from './components/RefreshModal'
@@ -39,6 +38,7 @@ export default function App() {
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS)
   const [activeArtist, setActiveArtist] = useState<string | null>(null)
   const [mainTab, setMainTab] = useState<'catalogue' | 'favoris' | 'demandes'>('catalogue')
+  const [favSortBy, setFavSortBy] = useState<'artist' | 'title' | 'added'>('artist')
   const [queuePanelOpen, setQueuePanelOpen] = useState(false)
   const [infoPanelOpen, setInfoPanelOpen] = useState(false)
   const [loginModalOpen, setLoginModalOpen] = useState(false)
@@ -105,6 +105,14 @@ export default function App() {
     () => filterSongs({ ...filters, favOnly: true, newOnly: false }, null),
     [allSongs, filters, favIds] // eslint-disable-line
   )
+
+  const sortedFavSongs = useMemo(() => {
+    return [...filteredFavSongs].sort((a, b) => {
+      if (favSortBy === 'artist') return (a.artist || '').localeCompare(b.artist || '', 'fr')
+      if (favSortBy === 'title') return (a.title || '').localeCompare(b.title || '', 'fr')
+      return b.id - a.id
+    })
+  }, [filteredFavSongs, favSortBy])
 
   function handleExportCatalog() {
     // Exporte tout le catalogue (base + extras + enrichissement iTunes)
@@ -356,8 +364,27 @@ export default function App() {
 
             {/* ── Onglet Favoris ── */}
             {mainTab === 'favoris' && (
-              <div className={styles.tabPane} style={previewTrack ? { paddingBottom: 88 } : undefined}>
-                {/* Barre de recherche & filtres (sans nouveautés) */}
+              <>
+                {/* Ligne 1 : titre + count + tri */}
+                <div className={styles.favHeader}>
+                  <span className={styles.favTitle}>♥ Favoris</span>
+                  <span className={styles.favCount}>{favIds.size}</span>
+                  <div className={styles.favSort}>
+                    {(['artist', 'title', 'added'] as const).map(k => (
+                      <button
+                        key={k}
+                        className={`${styles.sortChip} ${favSortBy === k ? styles.sortChipActive : ''}`}
+                        onClick={() => setFavSortBy(k)}
+                      >
+                        {k === 'artist' ? 'Artiste' : k === 'title' ? 'Titre' : 'Récent'}
+                      </button>
+                    ))}
+                  </div>
+                  <button className={styles.clearFavBtn} onClick={clearFavs} disabled={favIds.size === 0}>
+                    Effacer tout
+                  </button>
+                </div>
+                {/* Ligne 2 : recherche + filtres */}
                 <div className={styles.filterBar}>
                   <div className={styles.searchWrap}>
                     <svg className={styles.searchIcon} width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -387,24 +414,52 @@ export default function App() {
                     onClick={() => patchFilters({ duo: !filters.duo })}
                   >🎵 Duo</button>
                 </div>
-                <FavPanel
-                  favSongs={filteredFavSongs}
-                  onRemove={toggleFav}
-                  onClear={clearFavs}
-                  onPreview={playPreview}
-                  onAddToQueue={async (s) => {
-                    try { await addToQueue(s) } catch { /* affiché via songStatus */ }
-                  }}
-                  isInQueue={isInQueue}
-                  songStatus={songStatus}
-                  previewSongId={previewTrack?.songId}
-                  previewStatus={
-                    previewTrack
-                      ? previewLoading ? 'loading' : previewPlaying ? 'playing' : 'idle'
-                      : undefined
-                  }
-                />
-              </div>
+                {/* Grille de cards */}
+                <main className={styles.catalog} style={previewTrack ? { paddingBottom: 88 } : undefined}>
+                  {sortedFavSongs.length > 0 && (
+                    <div className={styles.resultsInfo}>
+                      <b>{sortedFavSongs.length.toLocaleString('fr')}</b>
+                      {' '}favori{sortedFavSongs.length > 1 ? 's' : ''} affiché{sortedFavSongs.length > 1 ? 's' : ''}
+                    </div>
+                  )}
+                  <div className={styles.grid}>
+                    {sortedFavSongs.map(song => (
+                      <SongCard
+                        key={song.id}
+                        song={song}
+                        isFav={favIds.has(song.id)}
+                        onToggleFav={toggleFav}
+                        onAddToQueue={async (s) => {
+                          try { await addToQueue(s) } catch { /* affiché via songStatus */ }
+                        }}
+                        queueStatus={
+                          isInQueue(song.id) ? 'queued'
+                          : songStatus[song.id] === 'loading' ? 'loading'
+                          : songStatus[song.id] === 'error' ? 'error'
+                          : undefined
+                        }
+                        onPreview={playPreview}
+                        previewStatus={
+                          previewTrack?.songId === song.id
+                            ? previewLoading ? 'loading' : previewPlaying ? 'playing' : 'idle'
+                            : undefined
+                        }
+                      />
+                    ))}
+                  </div>
+                  {sortedFavSongs.length === 0 && (
+                    <div className={styles.empty}>
+                      <div className={styles.emptyIcon}>♡</div>
+                      <p>{favIds.size === 0 ? 'Clique sur le ♡ d\'une chanson pour l\'ajouter ici' : 'Aucun favori ne correspond aux filtres'}</p>
+                      {favIds.size > 0 && filters.query && (
+                        <button className={styles.resetBtn} onClick={() => patchFilters({ query: '', lang: '', duo: false })}>
+                          Effacer les filtres
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </main>
+              </>
             )}
 
             {/* ── Onglet Demandes ── */}
